@@ -2,6 +2,7 @@ from scrapy import Spider, signals, Request
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 import os
+import csv
 
 
 class MoonPhasesSpider(Spider):
@@ -10,51 +11,66 @@ class MoonPhasesSpider(Spider):
     start_urls = ['http://www.timeanddate.com/moon/phases']
 
     def __init__(self, *args, **kwargs):
-
         super().__init__(*args, **kwargs)
-        self.search_cities = [("spain", "barcelona")] #!minus
-        self.years = ["2022", "2023"]
+        self.search_cities = [("spain", "barcelona")] # Specify the search cities
+        self.years = ["2022", "2023"]  # Specify the years to search
         self.allowed_domains = ['www.timeanddate.com']
-        self.start_urls = ['http://www.timeanddate.com/moon/phases']
+        self.start_urls = ['http://www.timeanddate.com/moon/phases'] #Specify the start url
 
 
     def start_requests(self):
+        for url in self.start_urls: #Iter. over the urls
+            for city in self.search_cities: #Iter. over the cities
+                for year in self.years: #Iter. over the years
+                    url_parse = "/".join([url, city[0], city[1]]) # Build the URL with city and year
+                    url_parse += "?year=" + year
+                    yield Request(url_parse, callback=self.parse, meta={'year': year})  # Pass the year as metadata. Is important to then create the csv and be able to add the year
 
-        for url in self.start_urls:
-            for city in self.search_cities:
-                for year in self.years:
-                
-                    url_parse = "/".join([url, city[0], city[1]]) #Add city
-                    url_parse += "?year=" + year #Add year
-                    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-                    print("Request to:", url_parse)
-                    print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-                    yield Request(url_parse, callback=self.parse)
 
     def parse(self, response):
-
         lunations = []
 
-        rows = response.xpath('/html/body/div[5]/main/article/section[2]/div[2]/div/table//tr')
-        header = [cell.xpath(".//text()").get().strip() for cell in rows[0].xpath(".//th")]
+        table = response.xpath('//table[@class="tb-sm zebra fw tb-hover"]') #Save xpath of the table to scrape
+        header_cells = table.xpath('.//thead//th/text()').getall() # Get headers of the table
+        self.header = [cell.strip() for cell in header_cells[1:]]  # Clean the header cells
 
-        for row in rows:
-            values = [cell.xpath(".//text()").get().strip() for cell in row[0].xpath(".//td")]
+        rows = table.xpath('.//tbody//tr') #Get the rows of the table
+        for row in rows: #Iter. over the rows
+            values_cells = row.xpath('.//td//text()').extract() #Extract all cells of the actual row
+            values = [values_cells[i].strip() for i in range(len(values_cells)) if i % 2 == 0]  # Clean the cell values
 
-            data = {}
-            for i, col in enumerate(header):
-                data[col] = values[i]
+            data = dict(zip(self.header, values)) #Create dict with colum name and value
+            data['Year'] = response.meta['year']  # Add the year to the data
+            lunations.append(data) #Save row-dict in the final data-list
 
-            lunations.append(data)
-        
-        self.save_csv(lunations)
+        self.save_csv(lunations) 
 
-    def save_csv(self, response):
-        filename = response.url.split("/")[-1]
-        path = os.path.join("data", filename)
-        with open(path, 'wb') as f:
-            f.write(response.body)
-        self.log(f'Saved file {filename}')
+
+    def save_csv(self, lunations):
+        file_path = "data/moon_phases.csv"
+
+        existing_rows = []  # List to store existing rows
+
+        # Read existing rows from the CSV file
+        if os.path.isfile(file_path):
+            with open(file_path, "r", newline="") as csvfile:
+                reader = csv.DictReader(csvfile)
+                existing_rows = list(reader)
+
+        # Open the CSV file in append mode to add new rows
+        with open(file_path, "a", newline="") as csvfile:
+            fieldnames = self.header + ['Year']
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+
+            # Write the header only if the file is empty
+            if not existing_rows:
+                writer.writeheader()
+
+            # Iterate over new rows and add them if they don't exist in the file
+            for lunation in lunations:
+                if lunation not in existing_rows:
+                    writer.writerow(lunation)
+                    existing_rows.append(lunation)
 
 
 # Debugger
@@ -63,4 +79,4 @@ def run_spider():
     process.crawl(MoonPhasesSpider)
     process.start()
 
-run_spider()
+#run_spider()
