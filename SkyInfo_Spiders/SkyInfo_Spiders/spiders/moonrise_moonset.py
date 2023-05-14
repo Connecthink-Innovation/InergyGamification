@@ -12,7 +12,7 @@ class MoonriseMoonsetSpider(Spider):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
-        self.years_months = {"2022":[str(i) for i in range(1,13)], "2023":[str(i) for i in range(1,13)]}  # Specify the years  and months to search
+        self.years_months = {"2022":["1", "2"]}  # Specify the years  and months to search
         self.allowed_domains = ['www.timeanddate.com']
         self.start_urls = ['http://www.timeanddate.com/moon'] #Specify the start url
 
