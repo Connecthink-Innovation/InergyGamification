@@ -15,7 +15,7 @@ class SunriseSunsetSpider(Spider):
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
         self.years_months = {"2022":["1", "2"]}  # Specify the years  and months to search
         self.allowed_domains = ['www.timeanddate.com']
-        self.start_urls = ['http://www.timeanddate.com/moon'] #Specify the start url
+        self.start_urls = ['http://www.timeanddate.com/sun'] #Specify the start url
 
     def start_requests(self):
             for url in self.start_urls: #Iter. over the urls
@@ -31,22 +31,22 @@ class SunriseSunsetSpider(Spider):
 
             table = response.xpath('//table[@id="as-monthsun"]') #Save xpath of the table to scrape
             header_cells = table.xpath('.//thead//th/text()').getall() # Get headers of the table
-            self.header = [cell.strip() for cell in header_cells[4:]]  # Clean the header cells
-            
+            self.header = [cell.strip() for cell in header_cells[8:]]  # Clean the header cells
+            for i in [4, 5]:
+                self.header[i] = self.header[i] + "_astronomical_twilight"
+            for i in [6, 7]:
+                self.header[i] = self.header[i] + "_nautical_twilight"
+            for i in [8, 9]:
+                self.header[i] = self.header[i] + "_civil_twilight" #IMPORTANT! period of time before sunrise and after sunset when there is still enough natural light for most outdoor activities without the need for artificial lighting
+            self.header[10] = "solar_noon_" + self.header[10]
+
             rows = table.xpath('.//tbody//tr') #Get the rows of the table
             for row in rows: #Iter. over the rows
                 values_cells = row.xpath('.//td//text()').extract() #Extract all cells of the actual row
                 values = [cell.strip() for cell in values_cells if '↑' not in cell and '°' not in cell and cell.strip()]  # Clean the cell values
                 
-                # Remove the bad Moonrise element and get the index
-                remove_indices = [i for i, value in enumerate(values) if value == "-"]
-                for index in reversed(remove_indices):
-                    del values[index]
 
-                # Delete the correspondent header
-                header_row = [value for i, value in enumerate(self.header) if i not in remove_indices]
-
-                data = dict(zip(header_row, values)) #Create dict with column name and value
+                data = dict(zip(self.header, values)) #Create dict with column name and value
                 data['Year'] = response.meta['year']  # Add the year to the data
                 data['Month'] = response.meta['month'] # Add the month to the data
                 data['Day']  = row.xpath('.//th//text()').extract()[0] # Add the day to the data
@@ -55,7 +55,7 @@ class SunriseSunsetSpider(Spider):
             self.save_csv(days) 
 
     def save_csv(self, days):
-        file_path = "data/sunrise_sunset.csv"
+        file_path = "C:/Users/CT/Desktop/SkyInfo/SkyInfo_Spiders/data/sunrise_sunset.csv"
 
         existing_rows = []  # List to store existing rows
 
@@ -67,7 +67,7 @@ class SunriseSunsetSpider(Spider):
 
         # Open the CSV file in append mode to add new rows
         with open(file_path, "a", newline="") as csvfile:
-            fieldnames = self.header + ['Year']
+            fieldnames = self.header + ['Year', 'Month', 'Day']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
             # Write the header only if the file is empty
