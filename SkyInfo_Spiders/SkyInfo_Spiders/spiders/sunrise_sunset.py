@@ -55,7 +55,7 @@ class SunriseSunsetSpider(Spider):
             self.save_csv(days) 
 
     def save_csv(self, days):
-        file_path = "C:/Users/CT/Desktop/SkyInfo/SkyInfo_Spiders/data/sunrise_sunset.csv"
+        file_path = "data/sunrise_sunset.csv"
 
         existing_rows = []  # List to store existing rows
 
