@@ -43,7 +43,7 @@ class Preprocessor:
         self.preprocess_moonrise_moonset("moonrise_moonset.csv")
         self.preprocess_sunrise_sunset("sunrise_sunset.csv")
         
-        #self.merge_data()
+        self.merge_data()
 
      # >> UTILS PREPROCCESS DATA
     def preprocess_moon_phases(self, file_name):
@@ -181,12 +181,26 @@ class Preprocessor:
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
 
-        #Search not NaN Moonrise and save
+        
+        #Convert NaN cells to standard format
         df = df.replace("-", pd.NaT) # "-" to NaN
-        df["Moonrise"] = df["Moonrise_left"].fillna(df["Moonrise_right"])
 
-        #Rename columns
-        df = df.rename(columns={'Distance (km)':'moon_distance', 'Illumination':'moon_ilumination', 'Time':'moon_time'})
+        #Aggregated columns 1
+        df["Moonrise"] = df["Moonrise_left"].fillna(df["Moonrise_right"]) #Get the valid Moonrise
+                
+        #Drop meridian days
+        df = df.dropna(subset=['Moonset', 'Moonrise'])
+
+        #Aggregated columns 2
+        df["moon_hours"] = round(abs((pd.to_datetime(df["Moonrise"], format="%H:%M") - pd.to_datetime(df["Moonset"], format="%H:%M")).dt.total_seconds() / 3600), 2) #Calculate moon duration
+        df["moon_illumination_percent"] = df["Illumination"].str.rstrip("%").astype(float)
+        df["moon_distance"] = df["Distance (km)"].str.replace(",", ".").astype(float)
+
+        #Delete useless columns 
+        df = df.drop(['Moonrise_left', 'Moonrise_right', "Time", "Illumination", "Distance (km)"], axis=1)
+
+        #Sort values by date
+        df = df.sort_values(by=["Year", "Month", "Day"])
 
         #save
         file_name = "moonrise_moonset_processed.csv"
@@ -200,11 +214,12 @@ class Preprocessor:
         #Aggregated columns
         df["sun_hours"] = df["Length"].apply(self.datetime_to_hours) #Calculate sun hours (hours format)
         df["civil_sun_hours"] = (pd.to_datetime(df['End_civil_twilight'], format='%H:%M') - pd.to_datetime(df['Start_civil_twilight'], format='%H:%M')).apply(lambda x: round(x.total_seconds() / 3600, 4)) #Calculate civil sun hours
+        df["sun_hours_diff_in_minutes"] = round((pd.to_numeric(df["Diff."].str.extract('(\d+):')[0]) + pd.to_numeric(df["Diff."].str.extract(':(\d+)')[0]) / 60), 2) # Calculate sun hours diff.
 
         #Rename and drop columns
-        df = df.drop(columns="Length")
-        df = df.rename(columns={'Diff.': 'sun_hours_diff'})
+        df = df.drop(columns=["Length", "Diff."])
 
+        #Sort values by date
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #save
@@ -212,23 +227,24 @@ class Preprocessor:
         dst_file = os.path.join(self.temp_data_path, file_name)
         df.to_csv(dst_file, index=False)
 
-    def datetime_to_hours(self, datatime): #Convert datatime to hours 
-        time = datetime.strptime(datatime, "%H:%M:%S")
+    def datetime_to_hours(self, datatime, format="%H:%M:%S"): #Convert datatime to hours 
+        time = datetime.strptime(datatime, format)
         total_hours = time.hour + time.minute / 60 + time.second / 3600
         return round(total_hours, 4)
     
     def merge_data(self):
 
-        for file_name in os.listdir(self.input_data_path):
+        for file_name in os.listdir(self.temp_data_path):
             if file_name.endswith(".csv"):
 
-                file_path = os.path.join(self.input_data_path, file_name)
+                file_path = os.path.join(self.temp_data_path, file_name)
+                print(file_path)
                 data = pd.read_csv(file_path)
 
                 if self.df.empty:
                     self.df = data
                 else:
-                    self.df = self.df.merge(data, on="Date", how="outer")
+                    self.df = self.df.merge(data, on=["Year", "Month", "Day"], how="outer")
     
     
     #SAVE OUTPUT DATA
@@ -244,7 +260,7 @@ class Preprocessor:
 preprocessor = Preprocessor()
 #preprocessor.get_input_data()
 preprocessor.preprocess_data()
-#preprocessor.save_output_data()
+preprocessor.save_output_data()
 
 
 
