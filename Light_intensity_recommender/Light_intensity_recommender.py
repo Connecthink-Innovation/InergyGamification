@@ -36,6 +36,12 @@ class LightIntensityRecommender:
                     shutil.copy2(src_file, dst_file)
 
 
+    #SAVE OUTPUT DATA
+    def save_output_data(self):
+        file_name = "recommended_light_intensity.csv"
+        dst_file = os.path.join(self.output_data_path, file_name)
+        self.df.to_csv(dst_file, index=False)
+
     #CALCULATE RECOMMENDED LIGHT INTENSITY
     def calculate_recommended_light_intensity(self):
         csv_file = os.path.join(self.input_data_path, "processed_data.csv")
@@ -43,12 +49,12 @@ class LightIntensityRecommender:
 
         df['Recommended_light_intensity'] = df.apply(self.light_intensity_formula, axis=1)
 
-        # Guardar
-        file_name = "recommended_light_intensity.csv"
-        dst_file = os.path.join(self.output_data_path, file_name)
-        df.to_csv(dst_file, index=False)
+        df['savings'] = df.apply(self.energy_savings_formula, axis=1)
 
-    # >> UTILS GIP
+        # Guardar
+        self.df = df
+
+    # >> UTILS CRLI
     def light_intensity_formula(self, row):
         # Define coefficients
         A = -0.3
@@ -59,14 +65,19 @@ class LightIntensityRecommender:
 
 
     #CALCULATE ENERGY SAVING
-    def calculate_energy_saving(self,):
+    def calculate_energy_savings(self,):
+
+        self.df['savings'] = self.df.apply(self.energy_savings_formula, axis=1)
+
+    # >> UTILS CES
+    def energy_savings_formula(self, row):
         pass
-
-
 
     
 
-
-light_itensity_recommender = LightIntensityRecommender()
-light_itensity_recommender.get_input_data()
-light_itensity_recommender.calculate_recommended_light_intensity()
+#test
+light_intensity_recommender = LightIntensityRecommender()
+light_intensity_recommender.get_input_data()
+light_intensity_recommender.calculate_recommended_light_intensity()
+light_intensity_recommender.calculate_energy_savings()
+light_intensity_recommender.save_output_data()

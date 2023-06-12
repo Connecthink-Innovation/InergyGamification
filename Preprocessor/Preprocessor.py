@@ -28,6 +28,7 @@ class Preprocessor:
         # Copiar todos los archivos de las carpetas "data" a la carpeta "input_data"
         self.copy_files_to_input_data(rss_data_path)
         self.copy_files_to_input_data(skyinfo_data_path)
+
     # >> UTILS GIP
     def copy_files_to_input_data(self, source_dir):
         for file_name in os.listdir(source_dir):
@@ -39,6 +40,7 @@ class Preprocessor:
 
     #PREPROCESS DATA
     def preprocess_data(self):
+        self.preprocess_weather_data("historico_2019_canyelles_1.csv")
         self.preprocess_moon_phases("moon_phases.csv")
         self.preprocess_moonrise_moonset("moonrise_moonset.csv")
         self.preprocess_sunrise_sunset("sunrise_sunset.csv")
@@ -46,6 +48,43 @@ class Preprocessor:
         self.merge_data()
 
      # >> UTILS PREPROCCESS DATA
+    def preprocess_weather_data(self, file_name, filter_dates=False, date_min=None, date_max=None):
+        csv_file = os.path.join(self.input_data_path, file_name)
+        df = pd.read_csv(csv_file)
+
+        df.drop("col_0", axis=1, inplace=True)
+
+        df["Temp_max"] = df["Temp_max"].apply(self.farenheit_to_celsius)
+        df["Temp_min"] = df["Temp_min"].apply(self.farenheit_to_celsius)
+        df["Temp_avg"] = df["Temp_avg"].apply(self.farenheit_to_celsius)
+        df["Dew_max"] = df["Dew_max"].apply(self.farenheit_to_celsius)
+        df["Dew_avg"] = df["Dew_avg"].apply(self.farenheit_to_celsius)
+        df["Dew_min"] = df["Dew_min"].apply(self.farenheit_to_celsius)
+
+        df["Date"] = pd.to_datetime(df["Date"])
+        df["Year"] = df["Date"].dt.year
+        df["Month"] = df["Date"].dt.month
+        df["Day"] = df["Date"].dt.day
+
+        df.drop("Date", axis=1, inplace=True)
+
+        if filter_dates:
+            meteo = meteo.loc[(date_min <= meteo["Date"]) & (meteo["Date"] <= date_max)]
+
+
+        df = df.sort_values(by=["Year", "Month", "Day"])
+
+        #save
+        file_name = "weather_data_processed.csv"
+        dst_file = os.path.join(self.temp_data_path, file_name)
+        df.to_csv(dst_file, index=False)    
+
+    def farenheit_to_celsius(self, degrees_farenheit: float) -> float:
+
+        degrees_celsius = (degrees_farenheit - 32) * (5/9)
+        return degrees_celsius
+
+
     def preprocess_moon_phases(self, file_name):
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
