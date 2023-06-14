@@ -74,6 +74,8 @@ class Preprocessor:
         df["Month"] = df["Date"].dt.month
         df["Day"] = df["Date"].dt.day
 
+        df["Hour"] = pd.to_datetime(df["Hour"], format="%I:%M %p").dt.time
+
         #Delete unrelated variables
         df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "feels_like_farenheit", "dew_point_farenheit", "wind_vel", "Date"], axis=1)
 
@@ -221,14 +223,27 @@ class Preprocessor:
                         converted_data.append({'Year': year, 'Month': month, 'Day': day, 'moon_phase': phase})
                     continue
 
-
+        #Save in dataframe
         converted_df = pd.DataFrame(converted_data)
+        #Sort by date
         converted_df = converted_df.sort_values(by=["Year", "Month", "Day"])
+        #Select only act and next day
+        current_date = datetime.now().date()
+        next_date = current_date + timedelta(days=1)
+        
+        filtered_df = converted_df[
+            (converted_df["Year"] == current_date.year)
+            & (converted_df["Month"] == current_date.month)
+            & (converted_df["Day"] == current_date.day)
+            | (converted_df["Year"] == next_date.year)
+            & (converted_df["Month"] == next_date.month)
+            & (converted_df["Day"] == next_date.day)
+        ]
 
         #save
         file_name = "moon_phases_processed.csv"
         dst_file = os.path.join(self.temp_data_path, file_name)
-        converted_df.to_csv(dst_file, index=False)
+        filtered_df.to_csv(dst_file, index=False)
 
     def preprocess_moonrise_moonset(self, file_name):
         csv_file = os.path.join(self.input_data_path, file_name)
@@ -255,10 +270,23 @@ class Preprocessor:
         #Sort values by date
         df = df.sort_values(by=["Year", "Month", "Day"])
 
+        #Select only act and next day
+        current_date = datetime.now().date()
+        next_date = current_date + timedelta(days=1)
+        
+        filtered_df = df[
+            (df["Year"] == current_date.year)
+            & (df["Month"] == current_date.month)
+            & (df["Day"] == current_date.day)
+            | (df["Year"] == next_date.year)
+            & (df["Month"] == next_date.month)
+            & (df["Day"] == next_date.day)
+        ]
+
         #save
         file_name = "moonrise_moonset_processed.csv"
         dst_file = os.path.join(self.temp_data_path, file_name)
-        df.to_csv(dst_file, index=False)
+        filtered_df.to_csv(dst_file, index=False)
 
     def preprocess_sunrise_sunset(self, file_name):
         csv_file = os.path.join(self.input_data_path, file_name)
@@ -275,10 +303,23 @@ class Preprocessor:
         #Sort values by date
         df = df.sort_values(by=["Year", "Month", "Day"])
 
+        #Select only act and next day
+        current_date = datetime.now().date()
+        next_date = current_date + timedelta(days=1)
+        
+        filtered_df = df[
+            (df["Year"] == current_date.year)
+            & (df["Month"] == current_date.month)
+            & (df["Day"] == current_date.day)
+            | (df["Year"] == next_date.year)
+            & (df["Month"] == next_date.month)
+            & (df["Day"] == next_date.day)
+        ]
+
         #save
         file_name = "sunrise_sunset_processed.csv"
         dst_file = os.path.join(self.temp_data_path, file_name)
-        df.to_csv(dst_file, index=False)
+        filtered_df.to_csv(dst_file, index=False)
 
     def datetime_to_hours(self, datatime, format="%H:%M:%S"): #Convert datatime to hours 
         time = datetime.strptime(datatime, format)
