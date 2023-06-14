@@ -41,7 +41,7 @@ def scraper(page, dates):
             data.append(data_row)
             
 
-    output = pd.DataFrame(data, columns=['day', 'time', 'condition', 'temp', 'feels_like', 'precip_percent', 'precip_amount', 'cloud_cover', 'dew_point', 'humidity_percent', 'wind_vel', 'pressure'])
+    output = pd.DataFrame(data, columns=['Date', 'Hour', 'condition', 'temp_farenheit', 'feels_like_farenheit', 'precip_percent', 'precip_inches', 'cloud_cover_percent', 'dew_point_farenheit', 'humidity_percent', 'wind_vel', 'pressure_inches'])
     output.to_csv("SkyInfo_Spiders/data/weather.csv")
 
     print('Scraper done!')

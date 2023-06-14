@@ -40,38 +40,44 @@ class Preprocessor:
 
     #PREPROCESS DATA
     def preprocess_data(self):
-        self.preprocess_weather_data("historico_2019_canyelles_1.csv")
+        self.preprocess_weather_data("weather.csv")
         self.preprocess_moon_phases("moon_phases.csv")
         self.preprocess_moonrise_moonset("moonrise_moonset.csv")
         self.preprocess_sunrise_sunset("sunrise_sunset.csv")
         
         self.merge_data()
 
-     # >> UTILS PREPROCCESS DATA
+    # >> UTILS PREPROCCESS DATA
     def preprocess_weather_data(self, file_name, filter_dates=False, date_min=None, date_max=None):
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
 
-        df.drop("col_0", axis=1, inplace=True)
+        #Process temperature columns -> F to C
+        df['temp_farenheit'] = df['temp_farenheit'].str.split().str[0].astype(float)
+        df["temp_celsius"] = df["temp_farenheit"].apply(self.farenheit_to_celsius)
 
-        df["Temp_max"] = df["Temp_max"].apply(self.farenheit_to_celsius)
-        df["Temp_min"] = df["Temp_min"].apply(self.farenheit_to_celsius)
-        df["Temp_avg"] = df["Temp_avg"].apply(self.farenheit_to_celsius)
-        df["Dew_max"] = df["Dew_max"].apply(self.farenheit_to_celsius)
-        df["Dew_avg"] = df["Dew_avg"].apply(self.farenheit_to_celsius)
-        df["Dew_min"] = df["Dew_min"].apply(self.farenheit_to_celsius)
+        #Process % columns
+        df['precip_percent'] = df['precip_percent'].str.split().str[0].astype(float)
+        df['cloud_cover_percent'] = df['cloud_cover_percent'].str.split().str[0].astype(float)
+        df['humidity_percent'] = df['humidity_percent'].str.split().str[0].astype(float)
 
+        #Process quantity columns
+        df["precip_inches"] = df['precip_inches'].str.split().str[0].astype(float)
+        df["precip_mm"] = df["precip_inches"].apply(self.inches_to_mm)
+
+        df["pressure_inches"] = df['pressure_inches'].str.split().str[0].astype(float)
+        df["pressure_hPa"] = df['pressure_inches'].apply(self.inches_to_hPa)
+
+        #Process date components
         df["Date"] = pd.to_datetime(df["Date"])
         df["Year"] = df["Date"].dt.year
         df["Month"] = df["Date"].dt.month
         df["Day"] = df["Date"].dt.day
 
-        df.drop("Date", axis=1, inplace=True)
+        #Delete unrelated variables
+        df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "feels_like_farenheit", "dew_point_farenheit", "wind_vel", "Date"], axis=1)
 
-        if filter_dates:
-            meteo = meteo.loc[(date_min <= meteo["Date"]) & (meteo["Date"] <= date_max)]
-
-
+        #Sort values by date
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #save
@@ -82,7 +88,15 @@ class Preprocessor:
     def farenheit_to_celsius(self, degrees_farenheit: float) -> float:
 
         degrees_celsius = (degrees_farenheit - 32) * (5/9)
-        return degrees_celsius
+        return round(degrees_celsius,2)
+    
+    def inches_to_mm(self, inches:float) -> float:
+        mm = inches * 25.4
+        return mm
+    
+    def inches_to_hPa(self, inches:float) -> float:
+        hPa = inches * 33.863889532610884
+        return round(hPa,2)
 
 
     def preprocess_moon_phases(self, file_name):

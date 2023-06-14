@@ -3,6 +3,8 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 import os
 import csv
+from datetime import datetime
+
 
 class MoonriseMoonsetSpider(Spider):
     name = 'moonrise_moonset'
@@ -11,8 +13,16 @@ class MoonriseMoonsetSpider(Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.PROJECT_PATH = os.getcwd()
+
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
-        self.years_months = {"2022":["1", "2"]}  # Specify the years  and months to search
+
+        date = datetime.now()
+        year = str(date.year)
+        month = str(date.month)
+        self.years_months = {year:[month]}  # Specify the years  and months to search
+
         self.allowed_domains = ['www.timeanddate.com']
         self.start_urls = ['http://www.timeanddate.com/moon'] #Specify the start url
 
@@ -49,30 +59,20 @@ class MoonriseMoonsetSpider(Spider):
 
 
     def save_csv(self, lunations):
-        file_path = "data/moonrise_moonset.csv"
+        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "moonrise_moonset.csv")
 
-        existing_rows = []  # List to store existing rows
-
-        # Read existing rows from the CSV file
-        if os.path.isfile(file_path):
-            with open(file_path, "r", newline="") as csvfile:
-                reader = csv.DictReader(csvfile)
-                existing_rows = list(reader)
 
         # Open the CSV file in append mode to add new rows
-        with open(file_path, "a", newline="") as csvfile:
+        with open(file_path, "w", newline="") as csvfile:
             fieldnames = self.header + ['Year', 'Month', 'Day']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-            # Write the header only if the file is empty
-            if not existing_rows:
-                writer.writeheader()
+            # Write the header
+            writer.writeheader()
 
-            # Iterate over new rows and add them if they don't exist in the file
-            for lunation in lunations:
-                if lunation not in existing_rows:
-                    writer.writerow(lunation)
-                    existing_rows.append(lunation)
+            # Write all the rows
+            writer.writerows(lunations)
+
 
 # Debugger
 def run_spider():

@@ -3,6 +3,8 @@ from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
 import os
 import csv
+from datetime import datetime
+
 
 class SunriseSunsetSpider(Spider):
     name = 'sunrise_sunset'
@@ -12,8 +14,16 @@ class SunriseSunsetSpider(Spider):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+
+        self.PROJECT_PATH = os.getcwd()
+
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
-        self.years_months = {"2022":["1", "2"]}  # Specify the years  and months to search
+
+        date = datetime.now()
+        year = str(date.year)
+        month = str(date.month)
+        self.years_months = {year:[month]}  # Specify the years  and months to search
+
         self.allowed_domains = ['www.timeanddate.com']
         self.start_urls = ['http://www.timeanddate.com/sun'] #Specify the start url
 
@@ -55,7 +65,8 @@ class SunriseSunsetSpider(Spider):
             self.save_csv(days) 
 
     def save_csv(self, days):
-        file_path = "data/sunrise_sunset.csv"
+        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
+
 
         existing_rows = []  # List to store existing rows
 
@@ -66,19 +77,16 @@ class SunriseSunsetSpider(Spider):
                 existing_rows = list(reader)
 
         # Open the CSV file in append mode to add new rows
-        with open(file_path, "a", newline="") as csvfile:
+        with open(file_path, "w", newline="") as csvfile:
             fieldnames = self.header + ['Year', 'Month', 'Day']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-            # Write the header only if the file is empty
-            if not existing_rows:
-                writer.writeheader()
+            # Write the header
+            writer.writeheader()
 
-            # Iterate over new rows and add them if they don't exist in the file
-            for day in days:
-                if day not in existing_rows:
-                    writer.writerow(day)
-                    existing_rows.append(day)
+            # Write all the rows
+            writer.writerows(days)
+
 
 
 # Debugger
