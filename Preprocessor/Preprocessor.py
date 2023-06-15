@@ -20,6 +20,7 @@ class Preprocessor:
         # Obtener las rutas absolutas de las carpetas "data" en los directorios RSS_Spider y SkyInfo_Spider
         rss_data_path = os.path.abspath(os.path.join(current_dir, "RSS_Spiders", "data"))
         skyinfo_data_path = os.path.abspath(os.path.join(current_dir, "SkyInfo_Spiders", "data"))
+        lightprice_data_path = os.path.abspath(os.path.join(current_dir, "LightPrice_Spiders", "data"))
 
         # Verificar si la carpeta "input_data" existe, si no, crearla
         if not os.path.exists(self.input_data_path):
@@ -28,7 +29,8 @@ class Preprocessor:
         # Copiar todos los archivos de las carpetas "data" a la carpeta "input_data"
         self.copy_files_to_input_data(rss_data_path)
         self.copy_files_to_input_data(skyinfo_data_path)
-
+        self.copy_files_to_input_data(lightprice_data_path)
+        
     # >> UTILS GIP
     def copy_files_to_input_data(self, source_dir):
         for file_name in os.listdir(source_dir):
@@ -44,6 +46,7 @@ class Preprocessor:
         self.preprocess_moon_phases("moon_phases.csv")
         self.preprocess_moonrise_moonset("moonrise_moonset.csv")
         self.preprocess_sunrise_sunset("sunrise_sunset.csv")
+        self.preprocess_light_prices("light_prices.csv")
         
         self.merge_data()
 
@@ -227,10 +230,20 @@ class Preprocessor:
         converted_df = pd.DataFrame(converted_data)
         #Sort by date
         converted_df = converted_df.sort_values(by=["Year", "Month", "Day"])
+        
         #Select only act and next day
+        """
+        PROD. CODE
+
         current_date = datetime.now().date()
         next_date = current_date + timedelta(days=1)
-        
+        """
+
+        #PREPROD. CODE
+        current_date = datetime(year=2023, month=6, day=14)
+        next_date = datetime(year=2023, month=6, day=15)
+        #---------------
+
         filtered_df = converted_df[
             (converted_df["Year"] == current_date.year)
             & (converted_df["Month"] == current_date.month)
@@ -271,8 +284,17 @@ class Preprocessor:
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #Select only act and next day
+        """
+        PROD. CODE
+
         current_date = datetime.now().date()
         next_date = current_date + timedelta(days=1)
+        """
+
+        #PREPROD. CODE
+        current_date = datetime(year=2023, month=6, day=14)
+        next_date = datetime(year=2023, month=6, day=15)
+        #---------------
         
         filtered_df = df[
             (df["Year"] == current_date.year)
@@ -304,8 +326,17 @@ class Preprocessor:
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #Select only act and next day
+        """
+        PROD. CODE
+
         current_date = datetime.now().date()
         next_date = current_date + timedelta(days=1)
+        """
+
+        #PREPROD. CODE
+        current_date = datetime(year=2023, month=6, day=14)
+        next_date = datetime(year=2023, month=6, day=15)
+        #---------------
         
         filtered_df = df[
             (df["Year"] == current_date.year)
@@ -326,6 +357,36 @@ class Preprocessor:
         total_hours = time.hour + time.minute / 60 + time.second / 3600
         return round(total_hours, 4)
     
+
+    def preprocess_light_prices(self, file_name):
+        csv_file = os.path.join(self.input_data_path, file_name)
+        df = pd.read_csv(csv_file, encoding="latin1")
+
+        #Process date components
+        df["Date"] = pd.to_datetime(df["Date"])
+        df["Year"] = df["Date"].dt.year
+        df["Month"] = df["Date"].dt.month
+        df["Day"] = df["Date"].dt.day
+        
+        df["Hour"] = df['hour_range'].str.split().str[0]
+        df["Hour"] = pd.to_datetime(df["Hour"], format="%H:%M").dt.time
+
+        #Process light price component
+        df["light_price_kwh"] = df['light_price_kwh'].str.split().str[0].astype(float)
+
+        #Delete unrelated variables
+        df = df.drop(columns=["hour_range"], axis=1)
+
+        #Sort values by date
+        df = df.sort_values(by=["Year", "Month", "Day"])
+
+        #save
+        file_name = "light_prices_processed.csv"
+        dst_file = os.path.join(self.temp_data_path, file_name)
+        df.to_csv(dst_file, index=False)    
+        
+
+
     def merge_data(self):
 
         for file_name in os.listdir(self.temp_data_path):
@@ -333,14 +394,15 @@ class Preprocessor:
 
                 file_path = os.path.join(self.temp_data_path, file_name)
                 print(file_path)
-                data = pd.read_csv(file_path)
+                other_df = pd.read_csv(file_path)
 
                 if self.df.empty:
-                    self.df = data
+                    self.df = other_df
                 else:
-                    self.df = self.df.merge(data, on=["Year", "Month", "Day"], how="outer")
-    
-    
+                    if "Hour" in self.df.columns and "Hour" in other_df.columns:
+                        self.df = self.df.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="outer")
+                    else:
+                        self.df = self.df.merge(other_df, on=["Year", "Month", "Day"], how="outer")
     #SAVE OUTPUT DATA
     def save_output_data(self):
 
@@ -350,9 +412,9 @@ class Preprocessor:
 
 
 
-
+#DEBUG MAIN
 preprocessor = Preprocessor()
-#preprocessor.get_input_data()
+preprocessor.get_input_data()
 preprocessor.preprocess_data()
 preprocessor.save_output_data()
 

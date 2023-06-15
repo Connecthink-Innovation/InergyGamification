@@ -55,12 +55,24 @@ def scraper(page, dates):
 # Debugger
 def run_scrapy():
     dates = []
+
+    """
+    PROD. CODE
+
     date = datetime.now()
     date_next = datetime.now() + timedelta(days=1)
     date_str = date.strftime("%Y-%m-%d")
     date_next_str = date_next.strftime("%Y-%m-%d")
+    """
+    
+    #PREPROD. CODE
+    date_str = "2023-06-14"
+    date_next_str = "2023-06-15"
+    #---------------
+
     dates.append(date_str)
     dates.append(date_next_str)
+
 
     page = 'https://www.wunderground.com/hourly/es/canyelles/ICANYE10/date/'
     df_output = scraper(page,dates)

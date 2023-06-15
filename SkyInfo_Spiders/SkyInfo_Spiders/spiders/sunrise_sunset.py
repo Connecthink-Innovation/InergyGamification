@@ -19,9 +19,18 @@ class SunriseSunsetSpider(Spider):
 
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
 
+        """
+        #PROD. CODE
         date = datetime.now()
         year = str(date.year)
         month = str(date.month)
+        """
+
+        #PREPROD. CODE
+        year = "2023"
+        month = "6"
+        #---------------
+        
         self.years_months = {year:[month]}  # Specify the years  and months to search
 
         self.allowed_domains = ['www.timeanddate.com']
@@ -69,7 +78,7 @@ class SunriseSunsetSpider(Spider):
 
 
     def delete_csv(self,):
-        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "moonrise_moonset.csv")
+        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
         file_exists = os.path.isfile(file_path)
         if file_exists:
             os.remove(file_path)
@@ -82,7 +91,7 @@ class SunriseSunsetSpider(Spider):
         file_exists = os.path.isfile(file_path) #Check if file exists
 
         # Open the CSV file in append mode to add new rows
-        with open(file_path, "a", newline="") as csvfile:
+        with open(file_path, "a", newline="", encoding="utf-8") as csvfile:
             fieldnames = self.header + ['Year', 'Month', 'Day']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -92,6 +101,7 @@ class SunriseSunsetSpider(Spider):
 
             # Write all the rows
             writer.writerows(days)
+            
 
 
 
