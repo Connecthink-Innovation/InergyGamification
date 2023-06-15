@@ -28,13 +28,16 @@ class SunriseSunsetSpider(Spider):
         self.start_urls = ['http://www.timeanddate.com/sun'] #Specify the start url
 
     def start_requests(self):
-            for url in self.start_urls: #Iter. over the urls
-                for city in self.search_cities: #Iter. over the cities
-                    for year in self.years_months: #Iter. over the years
-                        for month in self.years_months[year]:
-                            url_parse = "/".join([url, city[0], city[1]]) # Build the URL with city and year
-                            url_parse += "?month=" + month + "&year=" + year
-                            yield Request(url_parse, callback=self.parse, meta={'year': year, 'month': month})  # Pass the year as metadata. Is important to then create the csv and be able to add the year
+        
+        self.delete_csv()
+
+        for url in self.start_urls: #Iter. over the urls
+            for city in self.search_cities: #Iter. over the cities
+                for year in self.years_months: #Iter. over the years
+                    for month in self.years_months[year]:
+                        url_parse = "/".join([url, city[0], city[1]]) # Build the URL with city and year
+                        url_parse += "?month=" + month + "&year=" + year
+                        yield Request(url_parse, callback=self.parse, meta={'year': year, 'month': month})  # Pass the year as metadata. Is important to then create the csv and be able to add the year
 
     def parse(self, response):
             days = []
@@ -64,25 +67,28 @@ class SunriseSunsetSpider(Spider):
 
             self.save_csv(days) 
 
+
+    def delete_csv(self,):
+        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "moonrise_moonset.csv")
+        file_exists = os.path.isfile(file_path)
+        if file_exists:
+            os.remove(file_path)
+
+
     def save_csv(self, days):
+
         file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
 
-
-        existing_rows = []  # List to store existing rows
-
-        # Read existing rows from the CSV file
-        if os.path.isfile(file_path):
-            with open(file_path, "r", newline="") as csvfile:
-                reader = csv.DictReader(csvfile)
-                existing_rows = list(reader)
+        file_exists = os.path.isfile(file_path) #Check if file exists
 
         # Open the CSV file in append mode to add new rows
-        with open(file_path, "w", newline="") as csvfile:
+        with open(file_path, "a", newline="") as csvfile:
             fieldnames = self.header + ['Year', 'Month', 'Day']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-            # Write the header
-            writer.writeheader()
+            # Write the header if the file doesn't exist
+            if not file_exists:
+                writer.writeheader()
 
             # Write all the rows
             writer.writerows(days)

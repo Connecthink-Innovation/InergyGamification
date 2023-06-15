@@ -1,5 +1,6 @@
 import os
 import shutil
+import requests
 
 import pandas as pd
 from datetime import datetime, timedelta
@@ -35,12 +36,12 @@ class LightIntensityRecommender:
                 if os.path.isfile(src_file):
                     shutil.copy2(src_file, dst_file)
 
-
-    #SAVE OUTPUT DATA
-    def save_output_data(self):
-        file_name = "recommended_light_intensity.csv"
-        dst_file = os.path.join(self.output_data_path, file_name)
-        self.df.to_csv(dst_file, index=False)
+    
+    #GET LIGHT PRICE
+    def get_light_price_series(self):
+        json_light_prices = requests.get("https://api.preciodelaluz.org/v1/prices/all?zone=PCB")
+        return json_light_prices
+    
 
     #CALCULATE RECOMMENDED LIGHT INTENSITY
     def calculate_recommended_light_intensity(self):
@@ -73,7 +74,11 @@ class LightIntensityRecommender:
     def energy_savings_formula(self, row):
         pass
 
-    
+    #SAVE OUTPUT DATA
+    def save_output_data(self):
+        file_name = "recommended_light_intensity.csv"
+        dst_file = os.path.join(self.output_data_path, file_name)
+        self.df.to_csv(dst_file, index=False)   
 
 #test
 light_intensity_recommender = LightIntensityRecommender()

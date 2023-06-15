@@ -27,6 +27,9 @@ class MoonriseMoonsetSpider(Spider):
         self.start_urls = ['http://www.timeanddate.com/moon'] #Specify the start url
 
     def start_requests(self):
+
+        self.delete_csv()
+
         for url in self.start_urls: #Iter. over the urls
             for city in self.search_cities: #Iter. over the cities
                 for year in self.years_months: #Iter. over the years
@@ -58,17 +61,26 @@ class MoonriseMoonsetSpider(Spider):
         self.save_csv(lunations) 
 
 
+    def delete_csv(self,):
+        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "moonrise_moonset.csv")
+        file_exists = os.path.isfile(file_path)
+        if file_exists:
+            os.remove(file_path)
+
+
     def save_csv(self, lunations):
         file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "moonrise_moonset.csv")
 
+        file_exists = os.path.isfile(file_path) #Check if file exists
 
         # Open the CSV file in append mode to add new rows
-        with open(file_path, "w", newline="") as csvfile:
+        with open(file_path, "a", newline="") as csvfile:
             fieldnames = self.header + ['Year', 'Month', 'Day']
             writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
-            # Write the header
-            writer.writeheader()
+            # Write the header if the file doesn't exist
+            if not file_exists:
+                writer.writeheader()
 
             # Write all the rows
             writer.writerows(lunations)

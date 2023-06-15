@@ -5,6 +5,7 @@ from selenium.webdriver.chrome.options import Options
 from functools import reduce
 import pandas as pd
 import time   
+from datetime import datetime, timedelta
 
 
 def render_page(url):
@@ -53,7 +54,14 @@ def scraper(page, dates):
 
 # Debugger
 def run_scrapy():
-    dates = ['2023-06-14','2023-06-15']
+    dates = []
+    date = datetime.now()
+    date_next = datetime.now() + timedelta(days=1)
+    date_str = date.strftime("%Y-%m-%d")
+    date_next_str = date_next.strftime("%Y-%m-%d")
+    dates.append(date_str)
+    dates.append(date_next_str)
+
     page = 'https://www.wunderground.com/hourly/es/canyelles/ICANYE10/date/'
     df_output = scraper(page,dates)
 
