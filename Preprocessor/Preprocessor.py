@@ -22,6 +22,7 @@ class Preprocessor:
         skyinfo_data_path = os.path.abspath(os.path.join(current_dir, "SkyInfo_Spiders", "data"))
         lightprice_data_path = os.path.abspath(os.path.join(current_dir, "LightPrice_Spiders", "data"))
 
+
         # Verificar si la carpeta "input_data" existe, si no, crearla
         if not os.path.exists(self.input_data_path):
             os.makedirs(self.input_data_path)
@@ -42,6 +43,7 @@ class Preprocessor:
 
     #PREPROCESS DATA
     def preprocess_data(self):
+        self.preprocess_rss_data("rss_canyelles.csv")
         self.preprocess_weather_data("weather.csv")
         self.preprocess_moon_phases("moon_phases.csv")
         self.preprocess_moonrise_moonset("moonrise_moonset.csv")
@@ -51,6 +53,51 @@ class Preprocessor:
         self.merge_data()
 
     # >> UTILS PREPROCCESS DATA
+    def preprocess_rss_data(self, file_name,):
+        csv_file = os.path.join(self.input_data_path, file_name)
+        df = pd.read_csv(csv_file) 
+          
+
+        #Process date components
+        df["Date"] = pd.to_datetime(df["Date"])
+        df["Year"] = df["Date"].dt.year
+        df["Month"] = df["Date"].dt.month
+        df["Day"] = df["Date"].dt.day
+
+        #Rename components
+        df.rename(columns={'Title': 'event_title'}, inplace=True)
+
+        #Delete unrelated variables
+        df = df.drop(columns=["Date"], axis=1)
+
+        #Select only act and next day
+        """
+        PROD. CODE
+
+        current_date = datetime.now().date()
+        next_date = current_date + timedelta(days=1)
+        """
+
+        #PREPROD. CODE
+        current_date = datetime(year=2023, month=6, day=14)
+        next_date = datetime(year=2023, month=6, day=15)
+        #---------------
+
+        filtered_df = df[
+                    (df["Year"] == current_date.year)
+                    & (df["Month"] == current_date.month)
+                    & (df["Day"] == current_date.day)
+                    | (df["Year"] == next_date.year)
+                    & (df["Month"] == next_date.month)
+                    & (df["Day"] == next_date.day)
+                ]
+        
+        #save
+        file_name = "rss_canyelles_processed.csv"
+        dst_file = os.path.join(self.temp_data_path, file_name)
+        filtered_df.to_csv(dst_file, index=False)    
+
+
     def preprocess_weather_data(self, file_name, filter_dates=False, date_min=None, date_max=None):
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
