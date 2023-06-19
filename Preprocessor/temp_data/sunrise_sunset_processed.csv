@@ -1,3 +1,3 @@
 Sunrise,Sunset,Start_astronomical_twilight,End_astronomical_twilight,Start_nautical_twilight,End_nautical_twilight,Start_civil_twilight,End_civil_twilight,solar_noon_Time,Year,Month,Day,sun_hours,civil_sun_hours,sun_hours_diff_in_minutes
-06:17,21:25,04:08,23:34,05:00,22:43,05:43,21:59,13:51,2023,6,14,15.1436,16.2667,0.48
-06:17,21:26,04:08,23:35,05:00,22:43,05:43,22:00,13:51,2023,6,15,15.1506,16.2833,0.42
+06:17:00,21:25:00,04:08,23:34,05:00,22:43,05:43,21:59,13:51,2023,6,14,15.1436,16.2667,0.48
+06:17:00,21:26:00,04:08,23:35,05:00,22:43,05:43,22:00,13:51,2023,6,15,15.1506,16.2833,0.42

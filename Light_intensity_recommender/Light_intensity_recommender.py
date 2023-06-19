@@ -48,22 +48,53 @@ class LightIntensityRecommender:
         csv_file = os.path.join(self.input_data_path, "processed_data.csv")
         df = pd.read_csv(csv_file)
 
-        df['Recommended_light_intensity'] = df.apply(self.light_intensity_formula, axis=1)
 
-        df['savings'] = df.apply(self.energy_savings_formula, axis=1)
+        for index, row in df.iterrows():
+            intensity = 100 #Initial intensity
+            
+            #Needs artificial light ?
+            if not row["needs_artif_light"]:
+                intensity = 0
+            else:
+                #Light price are high?
+                if row["upper_light_price_mean"]:
+                    intensity += -5
+
+                #Is night?
+                if row["is_night"]:
+                    #We can reduce intensity depending on the moon ilumination - phase
+                    intensity += -row["moon_illumination_percent"]*0.33*row["moon_phase_mult"]
+
+            #Adjust intensity according to weather data
+            if "snow" in row["condition"]:
+                #Mirar cuantos dias lleva nevando!
+                # ++
+                pass
+
+            if "rain" in row["condition"]:
+                #row["precip_percent"] 
+                #row["precip_mm"]
+                # ++
+                pass
+
+            if "cloud" in row["condition"]:
+                #row["cloud_cover_percent"]
+                # ++
+                pass
+
+            #Temp module ++1% 
+            #Humidity module ++1%
+            #Pressure module ++1%
+                
+                
+
+                
+                
+
+                
 
         # Guardar
         self.df = df
-
-    # >> UTILS CRLI
-    def light_intensity_formula(self, row):
-        # Define coefficients
-        A = -0.3
-        B = 0.2
-        C = -0.4
-        D = 0.1
-        return 100 + (A * row['moon_illumination_percent'] + B * row['moon_hours'] + C * row['sun_hours'] + D * row['sun_hours_diff_in_minutes'])
-
 
     #CALCULATE ENERGY SAVING
     def calculate_energy_savings(self,):

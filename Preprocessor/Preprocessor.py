@@ -52,6 +52,8 @@ class Preprocessor:
         
         self.merge_data()
 
+        self.aggregated_metrics()
+
     # >> UTILS PREPROCCESS DATA
     def preprocess_rss_data(self, file_name,):
         csv_file = os.path.join(self.input_data_path, file_name)
@@ -118,6 +120,9 @@ class Preprocessor:
         df["pressure_inches"] = df['pressure_inches'].str.split().str[0].astype(float)
         df["pressure_hPa"] = df['pressure_inches'].apply(self.inches_to_hPa)
 
+        #Process str columns
+        df["condition"] = df["condition"].str.lower()
+
         #Process date components
         df["Date"] = pd.to_datetime(df["Date"])
         df["Year"] = df["Date"].dt.year
@@ -127,7 +132,7 @@ class Preprocessor:
         df["Hour"] = pd.to_datetime(df["Hour"], format="%I:%M %p").dt.time
 
         #Delete unrelated variables
-        df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "feels_like_farenheit", "dew_point_farenheit", "wind_vel", "Date"], axis=1)
+        df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "feels_like_farenheit", "dew_point_farenheit", "wind_vel", "Date", "precip_inches", "pressure_inches"], axis=1)
 
         #Sort values by date
         df = df.sort_values(by=["Year", "Month", "Day"])
@@ -319,10 +324,15 @@ class Preprocessor:
         #Drop meridian days
         df = df.dropna(subset=['Moonset', 'Moonrise'])
 
+
         #Aggregated columns 2
         df["moon_hours"] = round(abs((pd.to_datetime(df["Moonrise"], format="%H:%M") - pd.to_datetime(df["Moonset"], format="%H:%M")).dt.total_seconds() / 3600), 2) #Calculate moon duration
         df["moon_illumination_percent"] = df["Illumination"].str.rstrip("%").astype(float)
         df["moon_distance"] = df["Distance (km)"].str.replace(",", ".").astype(float)
+
+        #Process date components   
+        df["Moonset"] = pd.to_datetime(df["Moonset"], format="%H:%M").dt.time
+        df["Moonrise"] = pd.to_datetime(df["Moonrise"], format="%H:%M").dt.time
 
         #Delete useless columns 
         df = df.drop(['Moonrise_left', 'Moonrise_right', "Time", "Illumination", "Distance (km)"], axis=1)
@@ -365,6 +375,11 @@ class Preprocessor:
         df["sun_hours"] = df["Length"].apply(self.datetime_to_hours) #Calculate sun hours (hours format)
         df["civil_sun_hours"] = (pd.to_datetime(df['End_civil_twilight'], format='%H:%M') - pd.to_datetime(df['Start_civil_twilight'], format='%H:%M')).apply(lambda x: round(x.total_seconds() / 3600, 4)) #Calculate civil sun hours
         df["sun_hours_diff_in_minutes"] = round((pd.to_numeric(df["Diff."].str.extract('(\d+):')[0]) + pd.to_numeric(df["Diff."].str.extract(':(\d+)')[0]) / 60), 2) # Calculate sun hours diff.
+
+        #Process date components   
+        df["Sunset"] = pd.to_datetime(df["Sunset"], format="%H:%M").dt.time
+        df["Sunrise"] = pd.to_datetime(df["Sunrise"], format="%H:%M").dt.time
+
 
         #Rename and drop columns
         df = df.drop(columns=["Length", "Diff."])
@@ -450,6 +465,54 @@ class Preprocessor:
                         self.df = self.df.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="outer")
                     else:
                         self.df = self.df.merge(other_df, on=["Year", "Month", "Day"], how="outer")
+    
+    
+
+    def aggregated_metrics(self,):
+
+        upper_light_price_mean = []
+        is_night = []
+        is_day = []
+        needs_artif_light = []
+        moon_phase_mult = []
+
+        for index, row in self.df.iterrows():
+            if row["light_price_kwh"] > self.df["light_price_kwh"].mean():
+                upper_light_price_mean.append(True)
+            else:
+                upper_light_price_mean.append(False)
+
+            if row["Moonset"] < row["Hour"] < row["Moonrise"]:
+                is_night.append(True)
+            else:
+                is_night.append(False)
+
+            if row["Sunset"] < row["Hour"] < row["Sunrise"]:
+                is_day.append(True)
+            else:
+                is_day.append(False)
+            
+            if row["Start_civil_twilight"] < row["Hour"] < row["End_civil_twilight"]:
+                needs_artif_light.append(False)
+            else:
+                needs_artif_light.append(True)
+
+            if row["moon_phase"] == "New Moon":
+                moon_phase_mult.append(1)
+            elif row["moon_phase"] == "First Quarter" or row["moon_phase"] == "Third Quarter":
+                moon_phase_mult.append(2)
+            else: 
+                moon_phase_mult.append(3)
+
+        self.df["upper_light_price_mean"] = upper_light_price_mean
+        self.df["is_night"] = is_night
+        self.df["is_day"] = is_day
+        self.df["needs_artif_light"] = needs_artif_light 
+        self.df["moon_phase_mult"] = moon_phase_mult
+        
+
+            
+
     #SAVE OUTPUT DATA
     def save_output_data(self):
 
