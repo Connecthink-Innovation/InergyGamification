@@ -1,6 +1,7 @@
 import os
 import shutil
 import requests
+import argparse
 
 import pandas as pd
 from datetime import datetime, timedelta
@@ -35,16 +36,10 @@ class LightIntensityRecommender:
                 dst_file = os.path.join(self.input_data_path, file_name)
                 if os.path.isfile(src_file):
                     shutil.copy2(src_file, dst_file)
-
-    
-    #GET LIGHT PRICE
-    def get_light_price_series(self):
-        json_light_prices = requests.get("https://api.preciodelaluz.org/v1/prices/all?zone=PCB")
-        return json_light_prices
     
 
     #CALCULATE RECOMMENDED LIGHT INTENSITY
-    def calculate_recommended_light_intensity(self):
+    def calculate_recommended_light_intensity(self, args):
         csv_file = os.path.join(self.input_data_path, "processed_data.csv")
         df = pd.read_csv(csv_file)
 
@@ -55,46 +50,135 @@ class LightIntensityRecommender:
             #Needs artificial light ?
             if not row["needs_artif_light"]:
                 intensity = 0
+
             else:
                 #Light price are high?
                 if row["upper_light_price_mean"]:
-                    intensity += -5
+                    if "light price" in args:
+                        price_score = self.calc_price_score(df, index, row)
+                        intensity += -5
 
                 #Is night?
                 if row["is_night"]:
                     #We can reduce intensity depending on the moon ilumination - phase
-                    intensity += -row["moon_illumination_percent"]*0.33*row["moon_phase_mult"]
-
+                    if "moon" in args:
+                        intensity -= row["moon_illumination_percent"]*0.33*row["moon_phase_mult"]
+                
             #Adjust intensity according to weather data
-            if "snow" in row["condition"]:
-                #Mirar cuantos dias lleva nevando!
-                # ++
-                pass
+            if "snow" in args:
+                snow_score = self.calc_snow_score(df, index, row)
+                intensity -= 10*snow_score
 
-            if "rain" in row["condition"]:
-                #row["precip_percent"] 
-                #row["precip_mm"]
-                # ++
-                pass
+            if "rain" in args:
+                rain_score = self.calc_rain_score(df, index, row)
+                intensity += 10*rain_score
 
-            if "cloud" in row["condition"]:
-                #row["cloud_cover_percent"]
-                # ++
-                pass
+            if "cloud" in args:
+                cloud_score = self.calc_cloud_score(df, index, row)
+                intensity += 10*cloud_score
 
             #Temp module ++1% 
             #Humidity module ++1%
             #Pressure module ++1%
-                
-                
-
-                
-                
-
-                
 
         # Guardar
         self.df = df
+                
+    def calc_price_score(self, df, index, row):
+
+        mean_light_price = df["light_price_kwh"].mean()
+        min_light_price = df["light_price_kwh"].min()
+        max_light_price = df["light_price_kwh"].max()
+
+        diff_max = max_light_price - mean_light_price
+
+        diff_act = row["light_price_kwh"] - mean_light_price
+
+        price_score = diff_act / diff_max
+        
+        if price_score < 0:
+            price_score = 0
+
+        return price_score
+
+    def calc_snow_score(self, df, index, row):
+        snow_is_decisive = False
+
+        start_index = max(0, index - 72)  # Starting index of slider range
+        end_index = index - 1  # end index of slider range
+        
+        # Check if any of the rows contain the substring "snow" in the column "condition"
+        condition_contains_snow = df.loc[start_index:end_index, 'condition'].str.contains('snow').any()
+
+        if condition_contains_snow:
+            #Get index from the hour it snowed
+            first_snow_index = df.loc[start_index:end_index, 'condition'].str.contains('snow').idxmax()
+
+            #Average temperatures from the time it snowed to the current time
+            mean_temp = df.loc[first_snow_index:end_index, 'temp_celsius'].mean()
+
+            #If mean temperature is < 10, It means that there is snow on the ground
+            if mean_temp < 10:
+                snow_is_decisive = True
+
+        # Assign a score
+        if snow_is_decisive:
+            score = 1 ##################### ! ! ! #####################
+        
+        else:
+            score = 0 ##################### ! ! ! #####################
+
+      
+        """
+        Tambien deberiamos mirar tema de cuantos dias a nevado.  .  .  .   .  .  .  .  .     .    .  . . . .. 
+        """
+
+        return score
+    
+
+    def calc_rain_score(self, df, index, row):
+        
+        precip = row["precip_mm"]
+
+        if precip < 0.5 : # Very light rain
+            score = 0   ##################### ! ! ! #####################
+        
+        elif precip < 2.5: # Light rain
+            score = 0.2 ##################### ! ! ! #####################
+
+        elif precip < 7.6: # Moderate rain
+            score = 0.4 ##################### ! ! ! #####################
+
+        elif precip < 15: # Moderately heavy rain
+            score = 0.6 ##################### ! ! ! #####################
+
+        elif precip < 30: # Heavy rain
+            score = 0.8 ##################### ! ! ! #####################
+
+        else: #Very heavy rain
+            score = 1   ##################### ! ! ! #####################
+
+        
+        #row["precip_percent"]  <- check?
+    
+        """
+        #Lluvia muy ligera: Menos de 0.5 mm/h
+        #Lluvia ligera: 0.5 mm/h - 2.5 mm/h
+        #Lluvia moderada: 2.5 mm/h - 7.6 mm/h
+        #Lluvia moderadamente intensa: 7.6 mm/h - 15 mm/h
+        #Lluvia intensa: 15 mm/h - 30 mm/h
+        #Lluvia muy intensa: Más de 30 mm/h
+        """ 
+
+        return score
+        
+    
+    def calc_cloud_score(self, df, index, row):
+
+        score = row["cloud_cover_percent"] * 0.01 #Calculate cloud score
+                
+        return score
+    
 
     #CALCULATE ENERGY SAVING
     def calculate_energy_savings(self,):
@@ -112,8 +196,19 @@ class LightIntensityRecommender:
         self.df.to_csv(dst_file, index=False)   
 
 #test
-light_intensity_recommender = LightIntensityRecommender()
-light_intensity_recommender.get_input_data()
-light_intensity_recommender.calculate_recommended_light_intensity()
-light_intensity_recommender.calculate_energy_savings()
-light_intensity_recommender.save_output_data()
+
+def run_intensity_recommender():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--params", help="List of the municipalities the user wants to preprocess", nargs='+', default=["light price", "moon", "snow", "rain", "cloud"])
+    
+    args = parser.parse_args()
+    params = args.params
+
+    light_intensity_recommender = LightIntensityRecommender()
+    light_intensity_recommender.get_input_data()
+    light_intensity_recommender.calculate_recommended_light_intensity(params)
+    light_intensity_recommender.calculate_energy_savings()
+    light_intensity_recommender.save_output_data()
+
+run_intensity_recommender()
+
