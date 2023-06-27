@@ -16,7 +16,7 @@ def render_page(url):
     driver.quit()
     return r
 
-def scraper(page, dates):
+def scraper_next_day(page, dates):
     output = pd.DataFrame()
     
     data = []
@@ -43,7 +43,42 @@ def scraper(page, dates):
             
 
     output = pd.DataFrame(data, columns=['Date', 'Hour', 'condition', 'temp_farenheit', 'feels_like_farenheit', 'precip_percent', 'precip_inches', 'cloud_cover_percent', 'dew_point_farenheit', 'humidity_percent', 'wind_vel', 'pressure_inches'])
-    output.to_csv("SkyInfo_Spiders/data/weather.csv")
+    output.to_csv("SkyInfo_Spiders/data/weather_next.csv")
+
+    print('Scraper done!')
+
+
+    return output
+
+
+def scraper_previous_days(page, dates):
+    output = pd.DataFrame()
+    
+    data = []
+    for d in dates:
+
+        url = str(str(page) + str(d))
+
+        r = render_page(url)
+
+        soup = BS(r, "html.parser")
+        container = soup.find('lib-city-history-observation')
+        check = container.find('tbody')
+
+
+        for c in check.find_all('tr', class_='ng-star-inserted'):
+            data_row = []
+            data_row.append(d)
+
+            for i in c.find_all('td', class_='ng-star-inserted'):
+                trial = i.text.strip('  ')
+                data_row.append(trial)
+            
+            data.append(data_row)
+            
+
+    output = pd.DataFrame(data, columns=["Date", "Hour", "temp_farenheit", "dew_point_farenheit", "humidity_percent", "wind", "wind_vel", "wind_gust", "pressure_inches", "precip_inches", "condition"])
+    output.to_csv("SkyInfo_Spiders/data/weather_previous.csv")
 
     print('Scraper done!')
 
@@ -54,27 +89,48 @@ def scraper(page, dates):
 
 # Debugger
 def run_scrapy():
+
     dates = []
 
-    """
-    PROD. CODE
+   
+    #PROD. CODE
 
     date = datetime.now()
-    date_next = datetime.now() + timedelta(days=1)
-    date_str = date.strftime("%Y-%m-%d")
-    date_next_str = date_next.strftime("%Y-%m-%d")
-    """
+    for i in range(2, -1, -1):
+        date_previous_i = date - timedelta(days=i)
+        date_previous_i_str = date_previous_i.strftime("%Y-%m-%d")
+        dates.append(date_previous_i_str)
+
     
     #PREPROD. CODE
-    date_str = "2023-06-14"
-    date_next_str = "2023-06-15"
-    #---------------
+    #dates = ["2023-06-14", "2023-06-13", "2023-06-12"]
 
-    dates.append(date_str)
+    #---------------
+    page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
+    df_output = scraper_previous_days(page,dates) 
+
+    dates = []
+
+    
+    #PROD. CODE
+
+    date_actual = datetime.now()
+    date_actual_str = date_actual.strftime("%Y-%m-%d")
+    date_next = datetime.now() + timedelta(days=1)
+    date_next_str = date_next.strftime("%Y-%m-%d")
+
+    
+    #PREPROD. CODE
+    #date_actual_str = "2023-06-14"
+    #date_next_str = "2023-06-15"
+    #---------------
+    dates.append(date_actual_str)
     dates.append(date_next_str)
 
 
     page = 'https://www.wunderground.com/hourly/es/canyelles/ICANYE10/date/'
-    df_output = scraper(page,dates)
+    df_output2 = scraper_next_day(page,dates)
+
+
 
 run_scrapy()

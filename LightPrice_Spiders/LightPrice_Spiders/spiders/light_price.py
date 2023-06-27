@@ -20,18 +20,18 @@ class LightPriceSpider(Spider):
         #Save actual date and next day date
         self.dates = []
         
-        """
-        PROD. CODE
+        
+        #PROD. CODE
 
         date = datetime.now()
         date_next = datetime.now() + timedelta(days=1)
         date_str = date.strftime("%Y-%m-%d")
         date_next_str = date_next.strftime("%Y-%m-%d")
-        """
+       
 
         #PREPROD. CODE
-        date_str = "2023-06-14"
-        date_next_str = "2023-06-15"
+        #date_str = "2023-06-14"
+        #date_next_str = "2023-06-15"
         #---------------
         
         self.dates.append(date_str)

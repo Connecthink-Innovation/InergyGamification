@@ -1,0 +1,29 @@
+,Date,Hour,condition,temp_farenheit,feels_like_farenheit,precip_percent,precip_inches,cloud_cover_percent,dew_point_farenheit,humidity_percent,wind_vel,pressure_inches
+0,2023-06-26,8:00 pm,Mostly Sunny,81 °F,83 °F,1 °%,0 °in,21 °%,65 °F,58 °%,9 °mph SSW,30.05 °in
+1,2023-06-26,9:00 pm,Mostly Sunny,78 °F,81 °F,2 °%,0 °in,27 °%,65 °F,63 °%,7 °mph SW,30.06 °in
+2,2023-06-26,10:00 pm,Clear,76 °F,76 °F,1 °%,0 °in,19 °%,65 °F,68 °%,6 °mph SW,30.07 °in
+3,2023-06-26,11:00 pm,Clear,76 °F,76 °F,1 °%,0 °in,18 °%,65 °F,67 °%,3 °mph WSW,30.08 °in
+4,2023-06-27,12:00 am,Clear,75 °F,75 °F,2 °%,0 °in,16 °%,64 °F,69 °%,3 °mph W,30.08 °in
+5,2023-06-27,1:00 am,Clear,74 °F,74 °F,2 °%,0 °in,14 °%,64 °F,72 °%,2 °mph NW,30.07 °in
+6,2023-06-27,2:00 am,Clear,73 °F,73 °F,1 °%,0 °in,14 °%,63 °F,70 °%,3 °mph NNW,30.07 °in
+7,2023-06-27,3:00 am,Clear,73 °F,73 °F,2 °%,0 °in,12 °%,62 °F,69 °%,3 °mph N,30.06 °in
+8,2023-06-27,4:00 am,Clear,71 °F,71 °F,3 °%,0 °in,5 °%,61 °F,72 °%,3 °mph N,30.06 °in
+9,2023-06-27,5:00 am,Clear,70 °F,71 °F,3 °%,0 °in,10 °%,62 °F,76 °%,3 °mph N,30.05 °in
+10,2023-06-27,6:00 am,Clear,69 °F,70 °F,3 °%,0 °in,12 °%,63 °F,81 °%,3 °mph N,30.05 °in
+11,2023-06-27,7:00 am,Sunny,70 °F,71 °F,3 °%,0 °in,10 °%,63 °F,79 °%,4 °mph N,30.06 °in
+12,2023-06-27,8:00 am,Sunny,73 °F,74 °F,3 °%,0 °in,10 °%,63 °F,71 °%,3 °mph N,30.06 °in
+13,2023-06-27,9:00 am,Sunny,77 °F,80 °F,2 °%,0 °in,9 °%,64 °F,65 °%,3 °mph N,30.07 °in
+14,2023-06-27,10:00 am,Sunny,80 °F,82 °F,1 °%,0 °in,6 °%,64 °F,59 °%,5 °mph S,30.07 °in
+15,2023-06-27,11:00 am,Sunny,81 °F,84 °F,0 °%,0 °in,7 °%,65 °F,58 °%,6 °mph SSE,30.07 °in
+16,2023-06-27,12:00 pm,Sunny,82 °F,85 °F,0 °%,0 °in,4 °%,65 °F,56 °%,9 °mph SSE,30.07 °in
+17,2023-06-27,1:00 pm,Sunny,84 °F,86 °F,0 °%,0 °in,5 °%,64 °F,52 °%,10 °mph S,30.06 °in
+18,2023-06-27,2:00 pm,Sunny,85 °F,87 °F,1 °%,0 °in,6 °%,63 °F,48 °%,12 °mph S,30.05 °in
+19,2023-06-27,3:00 pm,Sunny,84 °F,87 °F,2 °%,0 °in,16 °%,63 °F,49 °%,13 °mph S,30.04 °in
+20,2023-06-27,4:00 pm,Partly Cloudy,84 °F,87 °F,3 °%,0 °in,31 °%,63 °F,49 °%,12 °mph S,30.02 °in
+21,2023-06-27,5:00 pm,Partly Cloudy,84 °F,86 °F,2 °%,0 °in,47 °%,64 °F,51 °%,12 °mph S,30.01 °in
+22,2023-06-27,6:00 pm,Partly Cloudy,83 °F,85 °F,3 °%,0 °in,58 °%,64 °F,53 °%,11 °mph S,30.00 °in
+23,2023-06-27,7:00 pm,Mostly Cloudy,81 °F,83 °F,4 °%,0 °in,61 °%,64 °F,57 °%,10 °mph S,29.99 °in
+24,2023-06-27,8:00 pm,Mostly Cloudy,79 °F,82 °F,5 °%,0 °in,67 °%,65 °F,63 °%,8 °mph SSW,29.99 °in
+25,2023-06-27,9:00 pm,Mostly Cloudy,77 °F,80 °F,3 °%,0 °in,69 °%,65 °F,67 °%,6 °mph SSW,29.99 °in
+26,2023-06-27,10:00 pm,Mostly Cloudy,76 °F,79 °F,5 °%,0 °in,64 °%,66 °F,72 °%,4 °mph S,30.00 °in
+27,2023-06-27,11:00 pm,Partly Cloudy,75 °F,76 °F,6 °%,0 °in,53 °%,67 °F,76 °%,3 °mph SSW,30.01 °in

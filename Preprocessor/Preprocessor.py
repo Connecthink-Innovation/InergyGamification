@@ -11,7 +11,9 @@ class Preprocessor:
         self.temp_data_path = os.path.join("Preprocessor", "temp_data")
         self.output_data_path = os.path.join("Preprocessor", "output_data")
 
-        self.df = pd.DataFrame()
+        self.df_next = pd.DataFrame()
+
+        self.df_previous = pd.DataFrame()
 
     #GET INPUT DATA
     def get_input_data(self):
@@ -44,7 +46,8 @@ class Preprocessor:
     #PREPROCESS DATA
     def preprocess_data(self):
         self.preprocess_rss_data("rss_canyelles.csv")
-        self.preprocess_weather_data("weather.csv")
+        self.preprocess_weather_previous_data("weather_previous.csv")
+        self.preprocess_weather_next_data("weather_next.csv")
         self.preprocess_moon_phases("moon_phases.csv")
         self.preprocess_moonrise_moonset("moonrise_moonset.csv")
         self.preprocess_sunrise_sunset("sunrise_sunset.csv")
@@ -73,16 +76,16 @@ class Preprocessor:
         df = df.drop(columns=["Date"], axis=1)
 
         #Select only act and next day
-        """
-        PROD. CODE
 
-        current_date = datetime.now().date()
-        next_date = current_date + timedelta(days=1)
-        """
+        #PROD. CODE
+
+        #current_date = datetime.now().date()
+        #next_date = current_date + timedelta(days=1)
+        
 
         #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=14)
-        next_date = datetime(year=2023, month=6, day=15)
+        current_date = datetime(year=2023, month=6, day=26)
+        next_date = datetime(year=2023, month=6, day=27)
         #---------------
 
         filtered_df = df[
@@ -99,8 +102,48 @@ class Preprocessor:
         dst_file = os.path.join(self.temp_data_path, file_name)
         filtered_df.to_csv(dst_file, index=False)    
 
+    def preprocess_weather_previous_data(self, file_name, filter_dates=False, date_min=None, date_max=None):
+        csv_file = os.path.join(self.input_data_path, file_name)
+        df = pd.read_csv(csv_file)
 
-    def preprocess_weather_data(self, file_name, filter_dates=False, date_min=None, date_max=None):
+        #Process temperature columns -> F to C
+        df['temp_farenheit'] = df['temp_farenheit'].str.split().str[0].astype(float)
+        df["temp_celsius"] = df["temp_farenheit"].apply(self.farenheit_to_celsius)
+
+        #Process % columns
+        df['humidity_percent'] = df['humidity_percent'].str.split().str[0].astype(float)
+
+        #Process quantity columns
+        df["precip_inches"] = df['precip_inches'].str.split().str[0].astype(float)
+        df["precip_mm"] = df["precip_inches"].apply(self.inches_to_mm)
+
+        df["pressure_inches"] = df['pressure_inches'].str.split().str[0].astype(float)
+        df["pressure_hPa"] = df['pressure_inches'].apply(self.inches_to_hPa)
+
+        #Process str columns
+        df["condition"] = df["condition"].str.lower()
+
+        #Process date components
+        df["Date"] = pd.to_datetime(df["Date"])
+        df["Year"] = df["Date"].dt.year
+        df["Month"] = df["Date"].dt.month
+        df["Day"] = df["Date"].dt.day
+
+        df["Hour"] = pd.to_datetime(df["Hour"], format="%I:%M %p").dt.time
+
+        #Delete unrelated variables
+        df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "dew_point_farenheit", "wind", "wind_vel", "wind_gust", "Date", "precip_inches", "pressure_inches"], axis=1)
+
+        #Sort values by date
+        df = df.sort_values(by=["Year", "Month", "Day"])
+
+        #save
+        file_name = "weather_previous_data_processed.csv"
+        dst_file = os.path.join(self.temp_data_path, file_name)
+        df.to_csv(dst_file, index=False)    
+
+
+    def preprocess_weather_next_data(self, file_name, filter_dates=False, date_min=None, date_max=None):
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
 
@@ -138,7 +181,7 @@ class Preprocessor:
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #save
-        file_name = "weather_data_processed.csv"
+        file_name = "weather_next_data_processed.csv"
         dst_file = os.path.join(self.temp_data_path, file_name)
         df.to_csv(dst_file, index=False)    
 
@@ -284,16 +327,16 @@ class Preprocessor:
         converted_df = converted_df.sort_values(by=["Year", "Month", "Day"])
         
         #Select only act and next day
-        """
-        PROD. CODE
 
-        current_date = datetime.now().date()
-        next_date = current_date + timedelta(days=1)
-        """
+        #PROD. CODE
+
+        #current_date = datetime.now().date()
+        #next_date = current_date + timedelta(days=1)
+
 
         #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=14)
-        next_date = datetime(year=2023, month=6, day=15)
+        current_date = datetime(year=2023, month=6, day=26)
+        next_date = datetime(year=2023, month=6, day=27)
         #---------------
 
         filtered_df = converted_df[
@@ -341,16 +384,16 @@ class Preprocessor:
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #Select only act and next day
-        """
-        PROD. CODE
+    
+        #PROD. CODE
 
-        current_date = datetime.now().date()
-        next_date = current_date + timedelta(days=1)
-        """
+        #current_date = datetime.now().date()
+        #next_date = current_date + timedelta(days=1)
+ 
 
         #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=14)
-        next_date = datetime(year=2023, month=6, day=15)
+        current_date = datetime(year=2023, month=6, day=26)
+        next_date = datetime(year=2023, month=6, day=27)
         #---------------
         
         filtered_df = df[
@@ -382,22 +425,24 @@ class Preprocessor:
 
 
         #Rename and drop columns
-        df = df.drop(columns=["Length", "Diff."])
+        df = df.drop(columns=["Length", "Diff.", "Start_astronomical_twilight", "End_astronomical_twilight", 
+                              "Start_nautical_twilight", "End_nautical_twilight", "solar_noon_Time",
+                              "civil_sun_hours", "sun_hours_diff_in_minutes"])
 
         #Sort values by date
         df = df.sort_values(by=["Year", "Month", "Day"])
 
         #Select only act and next day
-        """
-        PROD. CODE
+        
+        #PROD. CODE
 
-        current_date = datetime.now().date()
-        next_date = current_date + timedelta(days=1)
-        """
+        #current_date = datetime.now().date()
+        #next_date = current_date + timedelta(days=1)
+    
 
         #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=14)
-        next_date = datetime(year=2023, month=6, day=15)
+        current_date = datetime(year=2023, month=6, day=26)
+        next_date = datetime(year=2023, month=6, day=27)
         #---------------
         
         filtered_df = df[
@@ -452,21 +497,29 @@ class Preprocessor:
     def merge_data(self):
 
         for file_name in os.listdir(self.temp_data_path):
-            if file_name.endswith(".csv"):
+            if file_name.endswith(".csv") and not "previous" in file_name:
 
                 file_path = os.path.join(self.temp_data_path, file_name)
                 print(file_path)
                 other_df = pd.read_csv(file_path)
 
-                if self.df.empty:
-                    self.df = other_df
+                if self.df_next.empty:
+                    self.df_next = other_df
                 else:
-                    if "Hour" in self.df.columns and "Hour" in other_df.columns:
-                        self.df = self.df.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="outer")
+                    if "Hour" in self.df_next.columns and "Hour" in other_df.columns:
+                        self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="inner")
                     else:
-                        self.df = self.df.merge(other_df, on=["Year", "Month", "Day"], how="outer")
+                        self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day"], how="outer")
     
-    
+            else:
+                file_path = os.path.join(self.temp_data_path, file_name)
+                print(file_path)
+                other_df = pd.read_csv(file_path)
+                self.df_previous = other_df
+                
+        
+        self.df_next.to_csv("predicts.csv")
+        self.df_previous.to_csv("past.csv")
 
     def aggregated_metrics(self,):
 
@@ -476,8 +529,8 @@ class Preprocessor:
         needs_artif_light = []
         moon_phase_mult = []
 
-        for index, row in self.df.iterrows():
-            if row["light_price_kwh"] > self.df["light_price_kwh"].mean():
+        for index, row in self.df_next.iterrows():
+            if row["light_price_kwh"] > self.df_next["light_price_kwh"].mean():
                 upper_light_price_mean.append(True)
             else:
                 upper_light_price_mean.append(False)
@@ -504,11 +557,11 @@ class Preprocessor:
             else: 
                 moon_phase_mult.append(3)
 
-        self.df["upper_light_price_mean"] = upper_light_price_mean
-        self.df["is_night"] = is_night
-        self.df["is_day"] = is_day
-        self.df["needs_artif_light"] = needs_artif_light 
-        self.df["moon_phase_mult"] = moon_phase_mult
+        self.df_next["upper_light_price_mean"] = upper_light_price_mean
+        self.df_next["is_night"] = is_night
+        self.df_next["is_day"] = is_day
+        self.df_next["needs_artif_light"] = needs_artif_light 
+        self.df_next["moon_phase_mult"] = moon_phase_mult
         
 
             
@@ -516,9 +569,13 @@ class Preprocessor:
     #SAVE OUTPUT DATA
     def save_output_data(self):
 
-        file_name = "processed_data.csv"
+        file_name = "processed_data_next.csv"
         dst_file = os.path.join(self.output_data_path, file_name)
-        self.df.to_csv(dst_file, index=False)
+        self.df_next.to_csv(dst_file, index=False)
+
+        file_name = "processed_data_previous.csv"
+        dst_file = os.path.join(self.output_data_path, file_name)
+        self.df_previous.to_csv(dst_file, index=False)
 
 
 

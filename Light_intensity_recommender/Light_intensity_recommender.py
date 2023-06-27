@@ -40,11 +40,14 @@ class LightIntensityRecommender:
 
     #CALCULATE RECOMMENDED LIGHT INTENSITY
     def calculate_recommended_light_intensity(self, args):
-        csv_file = os.path.join(self.input_data_path, "processed_data.csv")
-        df = pd.read_csv(csv_file)
+        csv_file = os.path.join(self.input_data_path, "processed_data_next.csv")
+        df_next = pd.read_csv(csv_file)
+    
+        csv_file = os.path.join(self.input_data_path, "processed_data_previous.csv")
+        df_previous = pd.read_csv(csv_file)
 
-
-        for index, row in df.iterrows():
+        intensity_list = []
+        for index, row in df_next.iterrows():
             intensity = 100 #Initial intensity
             
             #Needs artificial light ?
@@ -55,8 +58,8 @@ class LightIntensityRecommender:
                 #Light price are high?
                 if row["upper_light_price_mean"]:
                     if "light price" in args:
-                        price_score = self.calc_price_score(df, index, row)
-                        intensity += -5
+                        price_score = self.calc_price_score(df_next, index, row)
+                        intensity -= 5*price_score
 
                 #Is night?
                 if row["is_night"]:
@@ -66,23 +69,37 @@ class LightIntensityRecommender:
                 
             #Adjust intensity according to weather data
             if "snow" in args:
-                snow_score = self.calc_snow_score(df, index, row)
+                df1 = df_previous[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
+                df2 = df_next[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
+                df_condition = pd.concat([df1, df2])
+                df_condition = df_condition.reset_index(drop=True)
+
+                snow_score = self.calc_snow_score(df_condition, index, row)
                 intensity -= 10*snow_score
 
             if "rain" in args:
-                rain_score = self.calc_rain_score(df, index, row)
+                rain_score = self.calc_rain_score(df_next, index, row)
                 intensity += 10*rain_score
 
             if "cloud" in args:
-                cloud_score = self.calc_cloud_score(df, index, row)
+                cloud_score = self.calc_cloud_score(df_next, index, row)
                 intensity += 10*cloud_score
 
             #Temp module ++1% 
             #Humidity module ++1%
             #Pressure module ++1%
 
-        # Guardar
-        self.df = df
+            #Adjust intensity according to events data
+            #
+            #
+            #
+            #
+
+            intensity_list.append(intensity)
+
+        # Save intensity and dataframe
+        df_next['recommended_intensity'] = intensity_list
+        self.df = df_next
                 
     def calc_price_score(self, df, index, row):
 
@@ -102,6 +119,7 @@ class LightIntensityRecommender:
         return price_score
 
     def calc_snow_score(self, df, index, row):
+
         snow_is_decisive = False
 
         start_index = max(0, index - 72)  # Starting index of slider range
@@ -109,6 +127,8 @@ class LightIntensityRecommender:
         
         # Check if any of the rows contain the substring "snow" in the column "condition"
         condition_contains_snow = df.loc[start_index:end_index, 'condition'].str.contains('snow').any()
+
+        
 
         if condition_contains_snow:
             #Get index from the hour it snowed
