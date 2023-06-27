@@ -59,7 +59,7 @@ class LightIntensityRecommender:
                 if row["upper_light_price_mean"]:
                     if "light price" in args:
                         price_score = self.calc_price_score(df_next, index, row)
-                        intensity -= 5*price_score
+                        intensity -= 10*price_score
 
                 #Is night?
                 if row["is_night"]:
@@ -67,23 +67,23 @@ class LightIntensityRecommender:
                     if "moon" in args:
                         intensity -= row["moon_illumination_percent"]*0.33*row["moon_phase_mult"]
                 
-            #Adjust intensity according to weather data
-            if "snow" in args:
-                df1 = df_previous[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
-                df2 = df_next[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
-                df_condition = pd.concat([df1, df2])
-                df_condition = df_condition.reset_index(drop=True)
+                #Adjust intensity according to weather data
+                if "snow" in args:
+                    df1 = df_previous[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
+                    df2 = df_next[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
+                    df_condition = pd.concat([df1, df2])
+                    df_condition = df_condition.reset_index(drop=True)
 
-                snow_score = self.calc_snow_score(df_condition, index, row)
-                intensity -= 10*snow_score
+                    snow_score = self.calc_snow_score(df_condition, index, row)
+                    intensity -= 10*snow_score
 
-            if "rain" in args:
-                rain_score = self.calc_rain_score(df_next, index, row)
-                intensity += 10*rain_score
+                if "rain" in args:
+                    rain_score = self.calc_rain_score(df_next, index, row)
+                    intensity += 10*rain_score
 
-            if "cloud" in args:
-                cloud_score = self.calc_cloud_score(df_next, index, row)
-                intensity += 10*cloud_score
+                if "cloud" in args:
+                    cloud_score = self.calc_cloud_score(df_next, index, row)
+                    intensity += 10*cloud_score
 
             #Temp module ++1% 
             #Humidity module ++1%
@@ -94,6 +94,8 @@ class LightIntensityRecommender:
             #
             #
             #
+            if intensity > 100: 
+                intensity = 100
 
             intensity_list.append(intensity)
 
