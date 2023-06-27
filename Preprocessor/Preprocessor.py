@@ -580,10 +580,10 @@ class Preprocessor:
 
 
 #DEBUG MAIN
-preprocessor = Preprocessor()
-preprocessor.get_input_data()
-preprocessor.preprocess_data()
-preprocessor.save_output_data()
+#preprocessor = Preprocessor()
+#preprocessor.get_input_data()
+#preprocessor.preprocess_data()
+#preprocessor.save_output_data()
 
 
 

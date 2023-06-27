@@ -96,4 +96,4 @@ def run_spider():
     process.crawl(MoonPhasesSpider)
     process.start()
 
-run_spider()
+#run_spider()
