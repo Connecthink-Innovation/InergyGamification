@@ -27,9 +27,11 @@ class NodeClassifier():
                                                     # }
                                         #      }
 
-
-
-    def get_input_data(self,):
+    def get_input_data(self,) -> None:
+        """
+        Read the csv with the list of the nodes and their respective coordinates and
+        the json containing the coordinates vertices of the zones of the municipality
+        """
 
         #Get csv of Nodes info
         csv_file = os.path.join(self.input_data_path, self.nodes_file_name)
@@ -39,57 +41,27 @@ class NodeClassifier():
         json_file = os.path.join(self.input_data_path, self.zone_coordinates_file_name)
         with open(json_file) as f:
             self.zone_coordinates_dict = json.load(f)
-
+        
+        # Strucure of the zone_coordinates_dict:
             # tr: top right coordinate
             # tl: top left coordinate
             # lr: lower right coordinate
             # ll: lower left coordinate
 
-
-    def classify_nodes(self,):
-        # Create coordinates
-        self.df["coordinates"] = self.df.apply(lambda row: self.create_coordinates_dict(row), axis=1)
-
-        # Apply the zone_classificator:
-        self.df["zone"] = self.df["coordinates"].apply(lambda coord: self.zone_classificator(coord))
-
-        # Keep only the lights:
-        self.df = self.df.loc[self.df["type"] == "light"]
-
-
-    def create_coordinates_dict(self,row):
+    def create_coordinates_dict(self,row: pd.Series) -> dict:
+        """
+        Helper function that gets a row of the dataframe and extracts the lat and lon into a dictionary.
+        This is used to create a new column in the nodes dataframe that contains the lon and lat all in 
+        one column.
+        """
 
         return {'lat': row['lat'], 'lon': row['lon']}
     
-
-    def zone_classificator(self, device_coordinates: dict) -> str:
-        zone_out = "Unknown"
-
-        for zone in self.zone_coordinates_dict.keys():
-            if zone == "south":
-                # First we have to check if the device is in the south rectangle but at the same time not in the turistic and not in the football field
-                if (
-
-                        (self.device_in_zone(self.zone_coordinates_dict["south"], device_coordinates) &
-
-                        (self.device_in_zone(self.zone_coordinates_dict["field2"], device_coordinates) == False) &
-
-                        (self.device_in_zone(self.zone_coordinates_dict["turistic"], device_coordinates) == False))
-
-                    ):
-
-                    zone_out = "south"
-
-            else: # any other zone
-                if self.device_in_zone(self.zone_coordinates_dict[zone], device_coordinates):
-
-                    zone_out = zone
-
-        # If we have not returned anything return "Unknown"
-        return zone_out
-    
-
     def device_in_zone(self, zone_coordinates: dict, device_coordinates: dict) -> bool:
+        """
+        For a certain zone of the municipality returns whether or not the device coordinate are in this
+        zone
+        """
 
         # Zone coordinates
 
@@ -126,8 +98,51 @@ class NodeClassifier():
         else:
 
             return False
-        
-    
+
+    def zone_classificator(self, device_coordinates: dict) -> str:
+        """
+        Returns the zone of the municipality in which the device_coordinates are located. If there is no match the function
+        returns 'Unknown'
+        """
+
+        zone_out = "Unknown"
+
+        for zone in self.zone_coordinates_dict.keys():
+            if zone == "south":
+                # First we have to check if the device is in the south rectangle but at the same time not in the turistic and not in the football field
+                if (
+
+                        (self.device_in_zone(self.zone_coordinates_dict["south"], device_coordinates) &
+
+                        (self.device_in_zone(self.zone_coordinates_dict["field2"], device_coordinates) == False) &
+
+                        (self.device_in_zone(self.zone_coordinates_dict["turistic"], device_coordinates) == False))
+
+                    ):
+
+                    zone_out = "south"
+
+            else: # any other zone
+                if self.device_in_zone(self.zone_coordinates_dict[zone], device_coordinates):
+
+                    zone_out = zone
+
+        # If we have not returned anything return "Unknown"
+        return zone_out
+
+    def classify_nodes(self,):
+        """
+        Creates a new column in the nodes dataframe that contains the zone in which we have classified the node
+        """
+
+        # Create coordinates
+        self.df["coordinates"] = self.df.apply(lambda row: self.create_coordinates_dict(row), axis=1)
+
+        # Apply the zone_classificator:
+        self.df["zone"] = self.df["coordinates"].apply(lambda coord: self.zone_classificator(coord))
+
+        # Keep only the lights:
+        self.df = self.df.loc[self.df["type"] == "light"]
 
     #SAVE OUTPUT DATA
     def save_output_data(self):
