@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import json
+import shutil
 
 class NodeClassifier():
 
@@ -150,6 +151,9 @@ class NodeClassifier():
         dst_file = os.path.join(self.output_data_path, self.output_file_name)
         self.df.to_csv(dst_file, index=False)
 
+        src_file = os.path.join(self.input_data_path, self.zone_coordinates_file_name)
+        dst_file = os.path.join(self.output_data_path, self.zone_coordinates_file_name)
+        shutil.copy2(src_file, dst_file)
 
 #DEBUG
 node_clasif = NodeClassifier()

@@ -4,6 +4,7 @@ import shutil
 import pandas as pd
 from datetime import datetime, timedelta
 import numpy as np
+import random
 
 class Preprocessor:
     def __init__(self):
@@ -23,7 +24,6 @@ class Preprocessor:
         rss_data_path = os.path.abspath(os.path.join(current_dir, "RSS_Spiders", "data"))
         skyinfo_data_path = os.path.abspath(os.path.join(current_dir, "SkyInfo_Spiders", "data"))
         lightprice_data_path = os.path.abspath(os.path.join(current_dir, "LightPrice_Spiders", "data"))
-
 
         # Verificar si la carpeta "input_data" existe, si no, crearla
         if not os.path.exists(self.input_data_path):
@@ -45,19 +45,122 @@ class Preprocessor:
 
     #PREPROCESS DATA
     def preprocess_data(self):
-        self.preprocess_rss_data("rss_canyelles.csv")
-        self.preprocess_weather_previous_data("weather_previous.csv")
-        self.preprocess_weather_next_data("weather_next.csv")
-        self.preprocess_moon_phases("moon_phases.csv")
-        self.preprocess_moonrise_moonset("moonrise_moonset.csv")
-        self.preprocess_sunrise_sunset("sunrise_sunset.csv")
-        self.preprocess_light_prices("light_prices.csv")
+        #self.preprocess_rss_data("rss_canyelles.csv")
+        self.preprocess_google_events("z_google_events.csv", sampling=random.choice(range(1,4)))
+        #self.preprocess_weather_previous_data("weather_previous.csv")
+        #self.preprocess_weather_next_data("weather_next.csv")
+        #self.preprocess_moon_phases("moon_phases.csv")
+        #self.preprocess_moonrise_moonset("moonrise_moonset.csv")
+        #self.preprocess_sunrise_sunset("sunrise_sunset.csv")
+        #self.preprocess_light_prices("light_prices.csv")
         
         self.merge_data()
 
-        self.aggregated_metrics()
+        #self.aggregated_metrics()
 
     # >> UTILS PREPROCCESS DATA
+    def preprocess_google_events(self, file_name, sampling=None):
+        csv_file = os.path.join(self.input_data_path, file_name)
+        df = pd.read_csv(csv_file) 
+        df = df.sample(n=sampling)
+
+        # Obtener la fecha y hora actual
+        current_date = datetime.now()
+        current_year = current_date.year
+        current_month = current_date.month
+        current_day = current_date.day
+
+        new_data = []
+        # Iterar sobre las filas del DataFrame
+        for index, row in df.iterrows():
+
+            hour_range = row['Schedule']
+
+            start_time, end_time = hour_range.split('-')
+                    
+            # Convertir los tiempos en objetos datetime
+            start_time = datetime.strptime(((datetime.strptime(start_time, '%H:%M').time()).strftime('%H:%M:%S')), '%H:%M:%S')
+            end_time = datetime.strptime(((datetime.strptime(end_time, '%H:%M').time()).strftime('%H:%M:%S')), '%H:%M:%S' )
+
+            #Truncate date_hours
+            start_time_truncated = self.truncate_hour(start_time)
+            end_time_truncated = self.truncate_hour(end_time)
+
+            # Calcular la diferencia de tiempo entre los dos tiempos
+            time_diff = end_time - start_time
+
+            #Common columns
+            title = row["Title"]
+            location = row["Location"]
+            description = row["Description"]
+
+            #Iterate over the range of hours 
+            num_hours = int(time_diff.seconds // 3600)+1
+            change_day=False
+            for hour in range(num_hours):
+
+                new_row = []
+                
+                act_hour = start_time_truncated + timedelta(hours=hour)
+                act_hour = pd.Timestamp(act_hour)
+                act_hour = act_hour.time()
+
+                if act_hour == '00:00:00':
+                    change_day=True
+
+                if change_day:
+                    act_date = current_date + timedelta(days=1)
+                    act_year = act_date.year
+                    act_month = act_date.month
+                    act_day = act_date.day
+                else:
+                    act_year = current_year
+                    act_month = current_month
+                    act_day = current_day
+
+
+                new_row = [title, location, description, act_year, act_month, act_day, act_hour]
+                new_data.append(new_row)
+
+        # Create new df
+        processed_df = pd.DataFrame(new_data, columns=["event_title", "event_location", "event_description", "Year", "Month", "Day", "Hour"])
+        processed_df["Day"] = processed_df["Day"].replace({7: 26, 8: 27})
+        processed_df["Month"] = processed_df["Month"].replace({7: 6})
+
+        # Agrupar por Year, Month, Day y Hour y crear listas de los valores correspondientes
+        grouped_df = processed_df.groupby(["Year", "Month", "Day", "Hour"]).agg({
+            "event_location": lambda x: x.tolist(),
+            "event_title": lambda x: x.tolist(),
+            "event_description": lambda x: x.tolist()
+        }).reset_index()
+
+        # Renombrar las columnas creadas
+        grouped_df.rename(columns={
+            "event_location": "events_locations",
+            "event_title": "events_titles",
+            "event_description": "events_descriptions"
+        }, inplace=True)       
+
+
+
+        #save
+        file_name = "z_google_events_processed.csv"
+        dst_file = os.path.join(self.temp_data_path, file_name)
+        grouped_df.to_csv(dst_file, index=False)    
+
+    def truncate_hour(self, date_hour):
+        # Extraer hora y minutos
+        hour = date_hour.hour
+        minutes = date_hour.minute
+
+        # Truncar a la hora punta anterior
+        minutes = 0
+
+        # Crear el nuevo datetime
+        date_hour_truncated = date_hour.replace(minute=minutes)
+
+        return date_hour_truncated
+
     def preprocess_rss_data(self, file_name,):
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file) 
@@ -497,25 +600,29 @@ class Preprocessor:
     def merge_data(self):
 
         for file_name in os.listdir(self.temp_data_path):
-            if file_name.endswith(".csv") and not "previous" in file_name:
+            if file_name.endswith(".csv"):
+                if not "previous" in file_name:
 
-                file_path = os.path.join(self.temp_data_path, file_name)
-                print(file_path)
-                other_df = pd.read_csv(file_path)
+                    file_path = os.path.join(self.temp_data_path, file_name)
+                    print(file_path)
+                    other_df = pd.read_csv(file_path)
 
-                if self.df_next.empty:
-                    self.df_next = other_df
-                else:
-                    if "Hour" in self.df_next.columns and "Hour" in other_df.columns:
-                        self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="inner")
+                    if self.df_next.empty:
+                        self.df_next = other_df
                     else:
-                        self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day"], how="outer")
-    
-            else:
-                file_path = os.path.join(self.temp_data_path, file_name)
-                print(file_path)
-                other_df = pd.read_csv(file_path)
-                self.df_previous = other_df
+                        if "Hour" in self.df_next.columns and "Hour" in other_df.columns and not "events_titles" in other_df.columns:
+                            self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="inner")
+                        
+                        elif "Hour" in self.df_next.columns and "Hour" in other_df.columns and"events_titles" in other_df.columns:
+                            self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="left")
+                        else:
+                            self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day"], how="outer")
+        
+                else:
+                    file_path = os.path.join(self.temp_data_path, file_name)
+                    print(file_path)
+                    other_df = pd.read_csv(file_path)
+                    self.df_previous = other_df
                 
         
         self.df_next.to_csv("predicts.csv")
@@ -580,9 +687,9 @@ class Preprocessor:
 
 
 #DEBUG MAIN
-#preprocessor = Preprocessor()
+preprocessor = Preprocessor()
 #preprocessor.get_input_data()
-#preprocessor.preprocess_data()
+preprocessor.preprocess_data()
 #preprocessor.save_output_data()
 
 
