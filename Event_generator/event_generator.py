@@ -2,6 +2,10 @@ import datetime
 import openai
 import random
 
+import ast
+from typing import List
+
+
 class EventGenerator():
     def __init__(self):
 
@@ -42,7 +46,7 @@ class EventGenerator():
 
 
     def save_prompts(self,):
-        events_casal = ["un concert", "una actuació", "una obra de teatre", "una xerrada", "una festa de música electronica", "un sopar a l'aire lliure de festa major", "una festa popular"]
+        events_casal = ["un concert", "una actuació", "una obra de teatre", "una xerrada", "una festa de música moderna", "un sopar a l'aire lliure de festa major", "una festa popular"]
 
         event_casal = random.choice(events_casal)
 
@@ -189,7 +193,7 @@ class EventGenerator():
 
         ]
 
-        events_hotelito_night = ["una sessió de DJ", "un concert acústic d'un artista local", "un concert de rock", "concerts de grups musicals formats per joves del municipi"
+        events_hotelito_night = ["una sessió de jazz", "un concert acústic d'un artista local", "un concert de rock", "concerts de grups musicals formats per joves del municipi"
 
                                     "una obra de teatre organitzada per l'associació de teatre de Canyelles"]
 
@@ -217,24 +221,17 @@ class EventGenerator():
 
         ]
 
-        events_CANYA_club = ["una sessió de DJ", "una festa per turistes", "una nit de mojitos", "una nit de cocktails"]
+        events_CANYA_club = ["una sessió de Jazz", "una festa per turistes", "una nit de mojitos", "una nit de cocktails"]
 
         event_CANYA_club = random.choice(events_CANYA_club)
 
         context_generation_events_CANYA_hclub = [
-
             {
-
                 "role": "user",
-
                 "content": f"""
-
                     Crea un event simulat que es celebri a la vila vacacional CANYA hlclub
-
                     el dia {self.current_day_str}. L'event ha d'anar relacionat amb l'oci nocturn com {event_CANYA_club}.
-
-                    Es molt important que en la descripció aparegui la adreça del CANYA hclub que és Carrer l'Hospitalet, 17, 08811 Califòrnia, Barcelona.
-
+                    Es molt important que en la descripció aparegui la hora a la que comença l'event i l'adreça del CANYA hclub que és Carrer l'Hospitalet, 17, 08811 Califòrnia, Barcelona.
                     Respon únicament amb la descripcó de l'event.
 
                 """
@@ -269,16 +266,13 @@ class EventGenerator():
 
         ]
 
-        events_TARA = ["una festa electronica", "una nit electronica", "una nit blanca amb DJ", "una festa hawaiana", "una festa organitzada per el propietaris de la vila"
+        events_TARA = ["una festa jove", "una nit jove", "una nit blanca amb una banda de Rock", "una festa hawaiana", "una festa organitzada per el propietaris de la vila"
 
                     "una festa de entrada lliure", "una nit de cocktails amb els millors baristes"]
 
         event_TARA = random.choice(events_TARA)
 
-
-
-
-        context_generation_events_CANYA_club = [
+        context_generation_events_TARA_club = [
 
             {
 
@@ -290,7 +284,7 @@ class EventGenerator():
 
                     el dia {self.current_day_str}. L'event ha d'anar relacionat amb l'oci nocturn com {event_TARA}.
 
-                    Es molt important que en la descripció aparegui la adreça del TARA club que és Carrer Nicaragua, 21, 08811 Canyelles, Barcelona.
+                    Es molt important que en la descripció aparegui la hora a la que comença i la adreça del TARA club que és Carrer Nicaragua, 21, 08811 Canyelles, Barcelona.
 
                     Respon únicament amb la descripcó de l'event.
 
@@ -299,6 +293,7 @@ class EventGenerator():
             },
 
         ]
+
 
         events_castell = ["una nit de portes obertes al castell", "un dia de portes obertes al castell", "una visita guiada", "una visita a les masmorres del castell", "una visita a la torre del castell per veure la posta de sol"
 
@@ -347,7 +342,7 @@ class EventGenerator():
 
             context_generation_events_patinatge,
 
-            context_generation_events_CANYA_club,
+            context_generation_events_TARA_club,
 
             context_generation_events_castell,
 
@@ -367,17 +362,171 @@ class EventGenerator():
                 deployment_id=self.deployment_name,
                 messages=event_context
             )
-
+        try:
             reply_content = completion.choices[0].message.content
             self.descriptions_events_today.append(reply_content)
-        
+        except Exception as e:
+            print("OPENAI API ERROR. Rerun the code")        
+
+class EventExtractor:
+
+    def __init__(self, descriptions_events_today: List):
+
+        self.descriptions_events_today = descriptions_events_today
+
+        # Prompts with examples to extract the date, location and exact time of the event
+        self.extractor_context = []
+
+        # List where we are going to store the extracted important information about the events:
+        self.data_extraction_list = []
+
+        self.save_gpt_settings()
+
+    def save_gpt_settings(self,):
+            #AZURE OPENAI
+            #Conect to Azure OpenAI model:
+            openai.api_key = "a87266acc05c46519ec00fb8bc86fbc5"
+            openai.api_base = "https://openaiabel12.openai.azure.com/" # your endpoint
+            openai.api_type = 'azure'
+            openai.api_version = '2023-05-15' # this may change in the future
+            self.deployment_name='gpt35turbo' #This will correspond to the custom name you chose for your deployment when you deployed a model.
+
+
+    def store_extractor_context(self):
+
+        self.extractor_context = [
+            {
+                "role": "user",
+                "content": """
+                    Et passaré la descripció d'un event. Necessito que em retornis en forma de diccionari de python la localització de l'event, la data i la hora en la que comença. Respon entesos si ho has entés.
+                """
+            },
+            {
+                "role": "assistant",
+                "content": "Entesos"
+            },
+            {
+                "role": "user",
+                "content": """
+                    Festa de White Sensation el 10 de juliol a les 22:00 h. a la Urbanització California. Els jardins de l'Hotelito seran el lloc per gaudir de la millor música electrònica amb el millor vestimenta de blanc per als assistents.
+                """
+            },
+            {
+                "role": "assistant",
+                "content": """
+                    {"localització": "Jardins de l'Hotelito Urbanització California", "data": "10 de juliol", "hora": "22:00"}
+                """
+            },
+            {
+                "role": "user",
+                "content": """
+                    Us convidem al nostre event nocturn de teatre a la plaça del casal de Canyelles el proper 7 de Juliol. A partir de les 21:00h, els nostres actors i actrius ens transportaran a una història emocionant i intrigant que ens mantindrà pegats a la cadira fins al final del show. \n\nAmb una decoració espectacular on la il·luminació serà el punt clau per crear l'ambient adequat, podràs gaudir del millor teatre a l'aire lliure. La història és una trama de misteri on els amants dels escenaris seran el més ben atesos, amb actors i actrius que lluiran disfresses exòtiques i amb un guion ben treballat.\n\nLa plaça del casal de Canyelles és el lloc perfecte per a aquesta nit de teatre, amb un escenari ampli que ens permetrà fer una espectacular representació per a tots els assistents. Els seguidors del teatre tenen una cita ineludible a Canyelles que no es poden perdre. \n\nNo t'hagis de preocupar, si la calor fa que et refregiïs, els nostres amics de Canyelles estaran a la nostra disposició per a mantenir-nos frescos amb begudes en una nit que promet ser la més entretinguda de l'estiu. \n\nNo hi haurà cap mena de dubte, l'event nocturn de teatre a la plaça del casal de Canyelles el 7 de Juliol serà l'event més popular de la nit, i tu no pots faltar. T'esperem per a viure una nit inoblidable de teatre sota les estrelles.
+                """
+            },
+            {
+                "role": "assistant",
+                "content": """
+                    {"localització": "Plaça del casal de Canyelles", "data": "7 de juliol", "hora": "21:00"}
+                """
+            },
+            {
+                "role": "user",
+                "content": """
+                    Celebrem l'estiu a la Escola Pública Sant Nicolau de Canyelles el dia 7 de Juliol. Vine amb la família i amics a gaudir d'un dia ple de diversió i entreteniment per a totes les edats.\n\nComençarem a les 10 del matí amb un esmorzar saludable per agafar forces i començar a jugar a les diferents activitats que hem preparat: jocs d'aigua, inflables, tallers de manualitats, face painting i moltes sorpreses més! També tindrem una zona de food trucks perquè pugueu gaudir d'una àmplia varietat de menjar i beguda.\n\nA la tarda, a partir de les 18h, podrem gaudir d'un concert en directe a càrrec d'un grup local de música que tocaran els millors èxits de l'estiu.\n\nLa festa acabarà cap a les 22h, però abans gaudirem d'una una gran festa de la espuma per refrescar-nos i acabar el dia amb una gran somriure. No et perdis aquesta gran festa d'estiu a la Escola Pública Sant Nicolau de Canyelles! Ens veiem allà!
+                """
+            },
+            {
+                "role": "assistant",
+                "content": """
+                    {"localització": "Escola Pública Sant Nicolau de Canyelles", "data": "7 de juliol", "hora": "10:00"}
+                """
+            },
+            {
+                "role": "user",
+                "content": """
+                    Us convidem a participar en les emocionants Jornades de les Ciències Naturals que es celebraran el proper 7 de juliol al camp de futbol de la urbanització Vora Sitges. Aquesta és una oportunitat única per explorar, estimular la curiositat i apropar-te a la ciència a través de diferents activitats.\n\nL'esdeveniment està programat per començar a les 10 del matí i continuar fins a les 6 de la tarda, amb moltes activitats emocionants pel camí. Vindràs a participar en tallers interactius que inclouen experimentació i aprenentatge sobre l'entorn natural que ens envolta.\n\nEls tallers seran dirigits pels nostres guies especialitzats en ciències naturals, que us oferiran les seves habilitats i coneixements expert per ajudar-vos a explorar i descobrir el món que ens rodeja. A més, també tindrem a disposició una àmplia gamma de material didàctic que us ajudarà en la comprensió dels nous conceptes.\n\nEl camp de futbol de Vora Sitges és un lloc ideal per celebrar les nostres Jornades de les Ciències Naturals, i estem segurs que les instal·lacions ens proporcionaran un espai ample i adequat per realitzar totes les activitats programades.\n\nEl transport no serà un problema, ja que hi hauran autobusos de línia que us acostaran fins al lloc de l'esdeveniment, i us garantim un ambient segur i agradable per a tothom.\n\nPer si no en teniu prou, també hi haurà una àmplia gamma d'alimentació i beguda disponible per a tothom. Si us plau, no oblideu dur roba còmoda i, és clar, una gran dosi de curiositat!\n\nAixí doncs, no espereu més i uneix-te a les nostres emocionants Jornades de les Ciències Naturals al camp de futbol de Vora Sitges el proper 7 de juliol. Aquest esdeveniment us obre les portes a un món meravellós de descobriments i aprendizatge, i no voldreu perdre-vos'l!
+                """
+            },
+            {
+                "role": "assistant",
+                "content": """
+                    {"localització": "Camp de futbol de la urbanització Vora Sitges", "data": "7 de juliol", "hora": "10:00"}
+
+                """
+            },
+        ]
+
+    def extract(self):
+        print("Extracting data...")
+
+        for event in self.descriptions_events_today:
+            # Create a temporal context:
+            temp_extractor_context = self.extractor_context.copy()
+
+            # add the description of the event to the whole promt:
+            event_dict = {
+                "role": "user",
+                "content": event
+            }
+
+            temp_extractor_context.append(event_dict)
+            
+            try:
+                completion = openai.ChatCompletion.create(
+                    deployment_id=self.deployment_name,
+                    messages=temp_extractor_context
+                )
+                reply_content = completion.choices[0].message.content
+
+                self.data_extraction_list.append(reply_content)
+            
+            except Exception as e:
+                print("\nERROR extracting data in context:\n", temp_extractor_context)
+                print("\nRaw ERROR:", e)
+                
+
+    
+    def literal_eval(self):
+
+        # List with the data converted to dictionaries:
+        out_list = []
+
+        print("Converting the string data into dictionaries...")
+        for event in self.data_extraction_list:
+
+            # Replace the '\' because in some cases chat gpt puts some of this characters in the strings
+            event = event.replace("\\", "")
+            try:
+                out_list.append(ast.literal_eval(event))
+            except Exception as e:
+                print("\nERROR converting data into dictionaries:\n", event)
+
+
+        return out_list
 
 
 def main():
+
     event_generator = EventGenerator()
     event_generator.generate_events()
-    
-    print(len(event_generator.descriptions_events_today))
-    print(event_generator.descriptions_events_today)
 
-main()
+    descriptions_events_today = event_generator.descriptions_events_today
+    print("Nº of events generated: ", len(descriptions_events_today))
+    print("Events generated:\n ", descriptions_events_today)
+
+    
+    event_extractor = EventExtractor(descriptions_events_today)
+    event_extractor.store_extractor_context()
+    event_extractor.extract()
+
+    events_dict = event_extractor.literal_eval()
+    print("Events dict:\n ", events_dict)
+  
+
+for i in range(20):
+    main()
+
+
+
+
+
