@@ -45,24 +45,26 @@ class Preprocessor:
 
     #PREPROCESS DATA
     def preprocess_data(self):
-        #self.preprocess_rss_data("rss_canyelles.csv")
+        self.preprocess_rss_data("rss_canyelles.csv")
         self.preprocess_google_events("z_google_events.csv", sampling=random.choice(range(1,4)))
-        #self.preprocess_weather_previous_data("weather_previous.csv")
-        #self.preprocess_weather_next_data("weather_next.csv")
-        #self.preprocess_moon_phases("moon_phases.csv")
-        #self.preprocess_moonrise_moonset("moonrise_moonset.csv")
-        #self.preprocess_sunrise_sunset("sunrise_sunset.csv")
-        #self.preprocess_light_prices("light_prices.csv")
+        self.preprocess_weather_previous_data("weather_previous.csv")
+        self.preprocess_weather_next_data("weather_next.csv")
+        self.preprocess_moon_phases("moon_phases.csv")
+        self.preprocess_moonrise_moonset("moonrise_moonset.csv")
+        self.preprocess_sunrise_sunset("sunrise_sunset.csv")
+        self.preprocess_light_prices("light_prices.csv")
         
         self.merge_data()
 
-        #self.aggregated_metrics()
+        self.aggregated_metrics()
 
     # >> UTILS PREPROCCESS DATA
     def preprocess_google_events(self, file_name, sampling=None):
         csv_file = os.path.join(self.input_data_path, file_name)
-        df = pd.read_csv(csv_file) 
-        df = df.sample(n=sampling)
+        df = pd.read_csv(csv_file)
+
+        if sampling:
+            df = df.sample(n=sampling)
 
         # Obtener la fecha y hora actual
         current_date = datetime.now()
@@ -105,7 +107,7 @@ class Preprocessor:
                 act_hour = pd.Timestamp(act_hour)
                 act_hour = act_hour.time()
 
-                if act_hour == '00:00:00':
+                if act_hour == (pd.Timestamp('00:00:00')).time():
                     change_day=True
 
                 if change_day:
@@ -625,9 +627,6 @@ class Preprocessor:
                     self.df_previous = other_df
                 
         
-        self.df_next.to_csv("predicts.csv")
-        self.df_previous.to_csv("past.csv")
-
     def aggregated_metrics(self,):
 
         upper_light_price_mean = []
@@ -688,9 +687,9 @@ class Preprocessor:
 
 #DEBUG MAIN
 preprocessor = Preprocessor()
-#preprocessor.get_input_data()
+preprocessor.get_input_data()
 preprocessor.preprocess_data()
-#preprocessor.save_output_data()
+preprocessor.save_output_data()
 
 
 

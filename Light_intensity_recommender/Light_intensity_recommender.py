@@ -55,6 +55,9 @@ class LightIntensityRecommender:
                 intensity = 0
 
             else:
+                if row["events_title"]:
+                    intensity += 20
+
                 #Light price are high?
                 if row["upper_light_price_mean"]:
                     if "light price" in args:
@@ -221,7 +224,7 @@ class LightIntensityRecommender:
 
 def run_intensity_recommender():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--params", help="List of the municipalities the user wants to preprocess", nargs='+', default=["light price", "moon", "snow", "rain", "cloud"])
+    parser.add_argument("--params", help="List of the municipalities the user wants to preprocess", nargs='+', default=["light price", "moon", "snow", "rain", "cloud", "events"])
     
     args = parser.parse_args()
     params = args.params
@@ -232,5 +235,5 @@ def run_intensity_recommender():
     light_intensity_recommender.calculate_energy_savings()
     light_intensity_recommender.save_output_data()
 
-#run_intensity_recommender()
+run_intensity_recommender()
 

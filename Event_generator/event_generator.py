@@ -358,15 +358,18 @@ class EventGenerator():
 
         print("\nGenerating events..\n")
         for event_context in today_contexts_events:
-            completion = openai.ChatCompletion.create(
-                deployment_id=self.deployment_name,
-                messages=event_context
-            )
-        try:
-            reply_content = completion.choices[0].message.content
-            self.descriptions_events_today.append(reply_content)
-        except Exception as e:
-            print("OPENAI API ERROR. Rerun the code")        
+
+            try:
+                completion = openai.ChatCompletion.create(
+                    deployment_id=self.deployment_name,
+                    messages=event_context
+                )
+                
+                reply_content = completion.choices[0].message.content
+                self.descriptions_events_today.append(reply_content)
+
+            except Exception as e:
+                print("OPENAI API ERROR. Rerun the code")        
 
 class EventExtractor:
 

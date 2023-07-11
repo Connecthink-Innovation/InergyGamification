@@ -40,10 +40,10 @@ class GoogleEventsSpider(scrapy.Spider):
 
         self.locations = ['Barcelona'] #Esto se pasara por argumento
 
-        self.extrapolate_to = ['Plaça del casal', 'Jardins el hotelito', 'Urbanització California', 'Castell de Canyelles'] #Esto se pasara por argumento
+        self.extrapolate_to = ['Plaça del casal de Canyelles', 'Jardins el hotelito Canyelles', 'Urbanització California', 'Castell de Canyelles'] #Esto se pasara por argumento
 
 
-
+  
         self.event_constructor = {
             "Title":None,
             "Schedule":None,
