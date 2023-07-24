@@ -377,6 +377,31 @@ class EventExtractor:
 
         self.descriptions_events_today = descriptions_events_today
 
+        # Define the geolocation relationship dictionary
+        self.coord_dict = {
+            "plaça del casal": (41.285159447102856, 1.7217341064298708),
+
+            "castell": (41.28713224852074, 1.722669984574967),
+
+            "urbanització california": (41.26815636260956, 1.7241116939992642),
+
+            "camp de futbol municipal": (41.281734200477494, 1.7186586581957097),
+            "pavelló municipal": (41.28209636259826, 1.7193940157374974),
+
+            "camp de futbol organització Vora sitges": (41.277844, 1.738181), 
+
+            "escola pública sant nicolau": (41.282733770529845, 1.7185643436835267),
+
+            "club de patinatge": (41.28290637166816, 1.7195591123248108),
+
+            "canya hlclub": (41.26732522298323, 1.7244491828494213),
+            "canya hclub": (41.26732522298323, 1.7244491828494213),
+            "carrer l\hospitalet, 17": (41.26732522298323, 1.7244491828494213),
+
+            "tara club": (41.28431829911173, 1.7481244797587359),
+            "carrer nicaragua, 21": (41.28431829911173, 1.7481244797587359)
+        }
+
         # Prompts with examples to extract the date, location and exact time of the event
         self.extractor_context = []
 
@@ -488,7 +513,19 @@ class EventExtractor:
                 print("\nRaw ERROR:", e)
                 
 
-    
+    def append_geolocation(self,):
+        new_list = []
+        for event in self.data_extraction_list:
+            event_lower = event.lower()
+            for substring, coordinates in self.coord_dict.items():
+                if substring in event_lower:
+                    lat, lon = coordinates
+                    event = event[:-1] + f', "lat": {lat}, "lon": {lon}}}'
+                    break
+            new_list.append(event)
+        
+        self.data_extraction_list = new_list
+
     def literal_eval(self):
 
         # List with the data converted to dictionaries:
@@ -521,13 +558,13 @@ def main():
     event_extractor = EventExtractor(descriptions_events_today)
     event_extractor.store_extractor_context()
     event_extractor.extract()
+    event_extractor.append_geolocation()
 
     events_dict = event_extractor.literal_eval()
     print("Events dict:\n ", events_dict)
   
 
-for i in range(20):
-    main()
+main()
 
 
 

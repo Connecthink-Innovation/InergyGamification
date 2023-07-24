@@ -32,7 +32,6 @@ class GoogleEventsSpider(scrapy.Spider):
     start_urls = ['http://google.com/']
 
     def __init__(self, mode='debug', *args, **kwargs):
-        super().__init__(**kwargs)
 
         self.mode = mode
 
@@ -40,14 +39,15 @@ class GoogleEventsSpider(scrapy.Spider):
 
         self.locations = ['Barcelona'] #Esto se pasara por argumento
 
-        self.extrapolate_to = ['Plaça del casal de Canyelles', 'Jardins el hotelito Canyelles', 'Urbanització California', 'Castell de Canyelles'] #Esto se pasara por argumento
-
-
+        self.extrapolate_to = [{'Location':'Plaça del casal de Canyelles', 'lat':41.285159447102856 , 'lon':1.7217341064298708}, {'Location':'Jardins el hotelito Canyelles urbanització California', 'lat':41.267869034171675, 'lon':1.724039265956549}, {'Location':'Castell de Canyelles', 'lat':41.28713224852074, 'lon':1.722669984574967}] #Esto se pasara por argumento
+                          
   
         self.event_constructor = {
             "Title":None,
             "Schedule":None,
             "Location":None,
+            "lat":None,
+            "lon":None,
             "Description":None,
         }
 
@@ -175,7 +175,9 @@ class GoogleEventsSpider(scrapy.Spider):
                 #Get event data
                 event_data["Title"] = self._get_event_title(driver)
                 event_data["Schedule"] = self._get_event_schedule(driver)
-                event_data["Location"] = self._get_event_location(driver)
+                event_data["Location"] = self._get_event_location(driver)["Location"]
+                event_data["lat"] = self._get_event_location(driver)["lat"]
+                event_data["lon"] = self._get_event_location(driver)["lon"]
                 event_data["Description"] = self._get_event_description(driver)
                 
                 #Append event data to df
@@ -268,6 +270,7 @@ class GoogleEventsSpider(scrapy.Spider):
             event_container = driver.find_element(By.XPATH, '//div[@class="oaJYtf uAAqtb"]')
             event_location_element = event_container.find_element(By.XPATH, './/div/span[@class="n3VjZe"]')
             event_location = event_location_element.text.strip()
+            event_location = {"Location":event_location, "lat":None, "lon":None}
 
         except Exception as e:
             print(e)
@@ -325,9 +328,9 @@ class GoogleEventsSpider(scrapy.Spider):
     
     def save_locally(self):
         if self.mode == 'debug':
-            path = os.path.join("data", "z_google_events.csv")
+            path = os.path.join("data", "google_events.csv")
 
-            self.df.to_csv(path)
+            self.df.to_csv(path, index=False)
 
 def main():
     os.chdir("./RSS_Spiders")

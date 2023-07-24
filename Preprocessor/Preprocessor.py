@@ -1,10 +1,13 @@
 import os
 import shutil
+import copy
 
 import pandas as pd
 from datetime import datetime, timedelta
 import numpy as np
 import random
+from scipy.spatial import cKDTree
+
 
 class Preprocessor:
     def __init__(self):
@@ -13,14 +16,18 @@ class Preprocessor:
         self.output_data_path = os.path.join("Preprocessor", "output_data")
 
         self.df_next = pd.DataFrame()
+        self.df_next_list = []
 
         self.df_previous = pd.DataFrame()
+
+        self.zones = []
 
     #GET INPUT DATA
     def get_input_data(self):
         current_dir = os.getcwd()
 
-        # Obtener las rutas absolutas de las carpetas "data" en los directorios RSS_Spider y SkyInfo_Spider
+        # Obtener las rutas absolutas de las carpetas "data" en los directorios Node_classifier, RSS_Spiders, SkyInfo_Spiders, LightPrice_Spiders
+        nodeclassifier_data_path = os.path.abspath(os.path.join(current_dir, "Node_classifier", "output_data"))
         rss_data_path = os.path.abspath(os.path.join(current_dir, "RSS_Spiders", "data"))
         skyinfo_data_path = os.path.abspath(os.path.join(current_dir, "SkyInfo_Spiders", "data"))
         lightprice_data_path = os.path.abspath(os.path.join(current_dir, "LightPrice_Spiders", "data"))
@@ -30,6 +37,7 @@ class Preprocessor:
             os.makedirs(self.input_data_path)
 
         # Copiar todos los archivos de las carpetas "data" a la carpeta "input_data"
+        self.copy_files_to_input_data(nodeclassifier_data_path)
         self.copy_files_to_input_data(rss_data_path)
         self.copy_files_to_input_data(skyinfo_data_path)
         self.copy_files_to_input_data(lightprice_data_path)
@@ -45,26 +53,79 @@ class Preprocessor:
 
     #PREPROCESS DATA
     def preprocess_data(self):
-        self.preprocess_rss_data("rss_canyelles.csv")
-        self.preprocess_google_events("z_google_events.csv", sampling=random.choice(range(1,4)))
-        self.preprocess_weather_previous_data("weather_previous.csv")
-        self.preprocess_weather_next_data("weather_next.csv")
-        self.preprocess_moon_phases("moon_phases.csv")
-        self.preprocess_moonrise_moonset("moonrise_moonset.csv")
-        self.preprocess_sunrise_sunset("sunrise_sunset.csv")
-        self.preprocess_light_prices("light_prices.csv")
+        self.preprocess_node_classifier_data("classified_nodes.csv")
         
-        self.merge_data()
+        #self.preprocess_rss_data("rss_canyelles.csv")
+        
+        for zone in self.zones:
+            self.preprocess_google_events_data("google_events.csv", zone=zone, sampling=None)
 
-        self.aggregated_metrics()
+        #self.preprocess_weather_previous_data("weather_previous.csv")
+        #self.preprocess_weather_next_data("weather_next.csv")
+        #self.preprocess_moon_phases("moon_phases.csv")
+        #self.preprocess_moonrise_moonset("moonrise_moonset.csv")
+        #self.preprocess_sunrise_sunset("sunrise_sunset.csv")
+        #self.preprocess_light_prices("light_prices.csv")
+        
+        self.merge_sky_data()
+
+        self.aggregated_sky_metrics()
+
+        self.merge_events_data()
 
     # >> UTILS PREPROCCESS DATA
-    def preprocess_google_events(self, file_name, sampling=None):
+    def preprocess_node_classifier_data(self, file_name,):
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
 
+        self.zones = list(df.zone.unique())
+        
+        # Definir las funciones de agregación para cada columna
+        agg_functions = {
+            'id': lambda x: list(x),
+            'type': lambda x: list(x),
+            'ebox_id': lambda x: list(x),
+            'coordinates': lambda x: list(x)   
+        }
+        
+        grouped_df = df.groupby('zone').agg(agg_functions).reset_index()
+
+        # Renombrar las columnas agregadas
+        grouped_df.rename(columns={
+            'id': 'id_list',
+            'type': 'type_list',
+            'ebox_id': 'ebox_id_list',
+            'coordinates': 'coordinates_list'
+        }, inplace=True)
+
+        #save
+        file_name = "classified_nodes_processed.csv"
+        dst_file = os.path.join(self.temp_data_path, file_name)
+        grouped_df.to_csv(dst_file, index=False)          
+
+
+    def  preprocess_google_events_data(self, file_name, zone, sampling=None):
+        csv_file = os.path.join(self.input_data_path, file_name)
+        df = pd.read_csv(csv_file)
+
+        #Buscamos la zona de la iluminación que esta mas cerca de la localización de cada evento, para saber
+        #en que zona esta cada evento.
+        csv_file = os.path.join(self.input_data_path, "classified_nodes.csv")
+        df_nodes_zone = pd.read_csv(csv_file)
+
+        tree = cKDTree(df_nodes_zone[['lat', 'lon']])
+        _, indices = tree.query(df[['lat', 'lon']])
+        df['zone'] = df_nodes_zone.loc[indices, 'zone'].values
+
+        #Filtramos por la zona actual.
+        df = df[df["zone"] == zone]
+
         if sampling:
-            df = df.sample(n=sampling)
+            if sampling > 0 and len(df) > 0:
+                df = df.sample(n=sampling)
+
+            else:
+                df = pd.DataFrame(columns=df.columns)
 
         # Obtener la fecha y hora actual
         current_date = datetime.now()
@@ -95,6 +156,9 @@ class Preprocessor:
             title = row["Title"]
             location = row["Location"]
             description = row["Description"]
+            zone = row["zone"]
+            lat = row["lat"]
+            lon = row["lon"]
 
             #Iterate over the range of hours 
             num_hours = int(time_diff.seconds // 3600)+1
@@ -121,32 +185,41 @@ class Preprocessor:
                     act_day = current_day
 
 
-                new_row = [title, location, description, act_year, act_month, act_day, act_hour]
+                new_row = [title, location, description, zone, lat, lon, act_year, act_month, act_day, act_hour]
                 new_data.append(new_row)
 
         # Create new df
-        processed_df = pd.DataFrame(new_data, columns=["event_title", "event_location", "event_description", "Year", "Month", "Day", "Hour"])
-        processed_df["Day"] = processed_df["Day"].replace({7: 26, 8: 27})
-        processed_df["Month"] = processed_df["Month"].replace({7: 6})
+        processed_df = pd.DataFrame(new_data, columns=["event_title", "event_location", "event_description", "event_zone", "event_lat", "event_lon", "Year", "Month", "Day", "Hour"])
+        #processed_df["Day"] = processed_df["Day"].replace({14: 26, 15: 27})
+        #processed_df["Month"] = processed_df["Month"].replace({7: 6})
 
         # Agrupar por Year, Month, Day y Hour y crear listas de los valores correspondientes
-        grouped_df = processed_df.groupby(["Year", "Month", "Day", "Hour"]).agg({
-            "event_location": lambda x: x.tolist(),
-            "event_title": lambda x: x.tolist(),
-            "event_description": lambda x: x.tolist()
-        }).reset_index()
+        if len(processed_df) > 0:
+            grouped_df = processed_df.groupby(["Year", "Month", "Day", "Hour"]).agg({
+                "event_location": lambda x: x.tolist(),
+                "event_title": lambda x: x.tolist(),
+                "event_description": lambda x: x.tolist(),
+                "event_zone": lambda x: x.tolist(),
+                "event_lat": lambda x: x.tolist(),
+                "event_lon": lambda x: x.tolist()
+            }).reset_index()
+        else:
+            grouped_df = processed_df
 
         # Renombrar las columnas creadas
         grouped_df.rename(columns={
             "event_location": "events_locations",
             "event_title": "events_titles",
-            "event_description": "events_descriptions"
+            "event_description": "events_descriptions",
+            "event_zone": "events_zones",
+            "event_lat": "events_lats",
+            "event_lon": "events_lons"
         }, inplace=True)       
 
 
 
         #save
-        file_name = "z_google_events_processed.csv"
+        file_name = f'google_events_processed_{zone}.csv'
         dst_file = os.path.join(self.temp_data_path, file_name)
         grouped_df.to_csv(dst_file, index=False)    
 
@@ -599,10 +672,10 @@ class Preprocessor:
         
 
 
-    def merge_data(self):
+    def merge_sky_data(self):
 
         for file_name in os.listdir(self.temp_data_path):
-            if file_name.endswith(".csv"):
+            if file_name.endswith(".csv") and not "classified_nodes" in file_name and not "google_events" in file_name:
                 if not "previous" in file_name:
 
                     file_path = os.path.join(self.temp_data_path, file_name)
@@ -612,14 +685,12 @@ class Preprocessor:
                     if self.df_next.empty:
                         self.df_next = other_df
                     else:
-                        if "Hour" in self.df_next.columns and "Hour" in other_df.columns and not "events_titles" in other_df.columns:
+                        if "Hour" in self.df_next.columns and "Hour" in other_df.columns:
                             self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="inner")
                         
-                        elif "Hour" in self.df_next.columns and "Hour" in other_df.columns and"events_titles" in other_df.columns:
-                            self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day", "Hour"], how="left")
                         else:
                             self.df_next = self.df_next.merge(other_df, on=["Year", "Month", "Day"], how="outer")
-        
+
                 else:
                     file_path = os.path.join(self.temp_data_path, file_name)
                     print(file_path)
@@ -627,7 +698,7 @@ class Preprocessor:
                     self.df_previous = other_df
                 
         
-    def aggregated_metrics(self,):
+    def aggregated_sky_metrics(self,):
 
         upper_light_price_mean = []
         is_night = []
@@ -669,15 +740,41 @@ class Preprocessor:
         self.df_next["needs_artif_light"] = needs_artif_light 
         self.df_next["moon_phase_mult"] = moon_phase_mult
         
+    def merge_events_data(self,):
 
+        file_path_classified_nodes = os.path.join(self.temp_data_path, "classified_nodes_processed.csv")
+        classified_nodes_df = pd.read_csv(file_path_classified_nodes)
+
+        for zone in self.zones:
+
+            file_path_google_events = os.path.join(self.temp_data_path, f'google_events_processed_{zone}.csv')
+            google_events_zone = pd.read_csv(file_path_google_events)
+
+            #Añadir a df los eventos + zona
+            if len(google_events_zone) > 0:
+                df_merged = self.df_next.merge(google_events_zone, on=["Year", "Month", "Day", "Hour"], how="left")
+            else:
+                df_merged = copy.deepcopy(self.df_next)
+                events_columns = list(google_events_zone.columns)
+                for column in events_columns:
+                    if column != "Year" and column != "Month" and column != "Day" and column != "Hour": 
+                        df_merged[column] = np.nan
+            
+            df_merged["id_list"] = list(classified_nodes_df[classified_nodes_df["zone"] == zone]['id_list'])[0]
+            df_merged["type_list"] = list(classified_nodes_df[classified_nodes_df["zone"] == zone]['type_list'])[0]
+            df_merged["ebox_id_list"] = list(classified_nodes_df[classified_nodes_df["zone"] == zone]['ebox_id_list'])[0]
+            df_merged["coordinates_list"] = list(classified_nodes_df[classified_nodes_df["zone"] == zone]['coordinates_list'])[0]
+
+            self.df_next_list.append((zone, df_merged)) #aqui guardamos el df de esa zona
             
 
     #SAVE OUTPUT DATA
     def save_output_data(self):
-
-        file_name = "processed_data_next.csv"
-        dst_file = os.path.join(self.output_data_path, file_name)
-        self.df_next.to_csv(dst_file, index=False)
+        
+        for df_next in self.df_next_list:
+            file_name = f'processed_data_next_{df_next[0]}.csv'
+            dst_file = os.path.join(self.output_data_path, file_name)
+            df_next[1].to_csv(dst_file, index=False)
 
         file_name = "processed_data_previous.csv"
         dst_file = os.path.join(self.output_data_path, file_name)
@@ -687,7 +784,7 @@ class Preprocessor:
 
 #DEBUG MAIN
 preprocessor = Preprocessor()
-preprocessor.get_input_data()
+#preprocessor.get_input_data()
 preprocessor.preprocess_data()
 preprocessor.save_output_data()
 

@@ -12,13 +12,13 @@ class LightIntensityRecommender:
         self.input_data_path = os.path.join("Light_intensity_recommender", "input_data")
         self.output_data_path = os.path.join("Light_intensity_recommender", "output_data")
 
-        self.df = pd.DataFrame()
+        self.df_list = []
 
     #GET INPUT DATA
     def get_input_data(self):
         current_dir = os.getcwd()
 
-        # Obtener las rutas absolutas de las carpetas "data" en los directorios RSS_Spider y SkyInfo_Spider
+        # Obtener las rutas absolutas de las carpetas "output_data" en el directorio Preprocessor 
         preprocessed_data_path = os.path.abspath(os.path.join(current_dir, "Preprocessor", "output_data"))
 
         # Verificar si la carpeta "input_data" existe, si no, crearla
@@ -40,71 +40,83 @@ class LightIntensityRecommender:
 
     #CALCULATE RECOMMENDED LIGHT INTENSITY
     def calculate_recommended_light_intensity(self, args):
-        csv_file = os.path.join(self.input_data_path, "processed_data_next.csv")
-        df_next = pd.read_csv(csv_file)
     
         csv_file = os.path.join(self.input_data_path, "processed_data_previous.csv")
         df_previous = pd.read_csv(csv_file)
 
-        intensity_list = []
-        for index, row in df_next.iterrows():
-            intensity = 100 #Initial intensity
-            
-            #Needs artificial light ?
-            if not row["needs_artif_light"]:
-                intensity = 0
+        for file_name in os.listdir(self.input_data_path):
+            if file_name.endswith(".csv") and not "previous" in file_name:
 
-            else:
-                if row["events_title"]:
-                    intensity += 20
+                zone = (os.path.splitext(file_name)[0]).split("_next_")[1]
+                file_path = os.path.join(self.input_data_path, file_name)
+                df_next = pd.read_csv(file_path)
 
-                #Light price are high?
-                if row["upper_light_price_mean"]:
-                    if "light price" in args:
-                        price_score = self.calc_price_score(df_next, index, row)
-                        intensity -= 10*price_score
-
-                #Is night?
-                if row["is_night"]:
-                    #We can reduce intensity depending on the moon ilumination - phase
-                    if "moon" in args:
-                        intensity -= row["moon_illumination_percent"]*0.33*row["moon_phase_mult"]
+                real_intensity_list = []
+                recommended_intensity_list = []
                 
-                #Adjust intensity according to weather data
-                if "snow" in args:
-                    df1 = df_previous[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
-                    df2 = df_next[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
-                    df_condition = pd.concat([df1, df2])
-                    df_condition = df_condition.reset_index(drop=True)
+                for index, row in df_next.iterrows():
+                    recommended_intensity = 100 #Initial recommended intensity
+                    real_intensity = float(100)
+                    
+                    #Needs artificial light ?
+                    if not row["needs_artif_light"]:
+                        real_intensity = float(0)
+                        recommended_intensity = 0
 
-                    snow_score = self.calc_snow_score(df_condition, index, row)
-                    intensity -= 10*snow_score
+                    else:
+                        
+                        if pd.notna(row["events_titles"]):
+                            recommended_intensity += 20
 
-                if "rain" in args:
-                    rain_score = self.calc_rain_score(df_next, index, row)
-                    intensity += 10*rain_score
+                        #Light price are high?
+                        if row["upper_light_price_mean"]:
+                            if "light price" in args:
+                                price_score = self.calc_price_score(df_next, index, row)
+                                recommended_intensity -= 10*price_score
 
-                if "cloud" in args:
-                    cloud_score = self.calc_cloud_score(df_next, index, row)
-                    intensity += 10*cloud_score
+                        #Is night?
+                        if row["is_night"]:
+                            #We can reduce intensity depending on the moon ilumination - phase
+                            if "moon" in args:
+                                recommended_intensity -= row["moon_illumination_percent"]*0.33*row["moon_phase_mult"]
+                        
+                        #Adjust intensity according to weather data
+                        if "snow" in args:
+                            df1 = df_previous[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
+                            df2 = df_next[["condition", "temp_celsius", "Year", "Month", "Day", "Hour"]]
+                            df_condition = pd.concat([df1, df2])
+                            df_condition = df_condition.reset_index(drop=True)
 
-            #Temp module ++1% 
-            #Humidity module ++1%
-            #Pressure module ++1%
+                            snow_score = self.calc_snow_score(df_condition, index, row)
+                            recommended_intensity -= 10*snow_score
 
-            #Adjust intensity according to events data
-            #
-            #
-            #
-            #
-            if intensity > 100: 
-                intensity = 100
+                        if "rain" in args:
+                            rain_score = self.calc_rain_score(df_next, index, row)
+                            recommended_intensity += 10*rain_score
 
-            intensity_list.append(intensity)
+                        if "cloud" in args:
+                            cloud_score = self.calc_cloud_score(df_next, index, row)
+                            recommended_intensity += 10*cloud_score
 
-        # Save intensity and dataframe
-        df_next['recommended_intensity'] = intensity_list
-        self.df = df_next
+                    #Temp module ++1% 
+                    #Humidity module ++1%
+                    #Pressure module ++1%
+
+                    #Adjust intensity according to events data
+                    #
+                    #
+                    #
+                    #
+                    if recommended_intensity > 100: 
+                        recommended_intensity = 100
+
+                    recommended_intensity_list.append(recommended_intensity)
+                    real_intensity_list.append(real_intensity)
+
+                # Save intensity and dataframe
+                df_next['real_intensity'] = real_intensity_list
+                df_next['recommended_intensity'] = recommended_intensity_list
+                self.df_list.append((df_next, zone))
                 
     def calc_price_score(self, df, index, row):
 
@@ -207,8 +219,17 @@ class LightIntensityRecommender:
 
     #CALCULATE ENERGY SAVING
     def calculate_energy_savings(self,):
+        df_list_temp = []
+        for df_zone in self.df_list:
 
-        self.df['savings'] = self.df.apply(self.energy_savings_formula, axis=1)
+            df = df_zone[0]
+            zone = df_zone[1]
+
+            df['savings'] = df.apply(self.energy_savings_formula, axis=1)
+
+            df_list_temp.append((df, zone))
+        
+        self.df_list = df_list_temp
 
     # >> UTILS CES
     def energy_savings_formula(self, row):
@@ -216,9 +237,20 @@ class LightIntensityRecommender:
 
     #SAVE OUTPUT DATA
     def save_output_data(self):
-        file_name = "recommended_light_intensity.csv"
-        dst_file = os.path.join(self.output_data_path, file_name)
-        self.df.to_csv(dst_file, index=False)   
+
+        # Verificar si la carpeta "input_data" existe, si no, crearla
+        if not os.path.exists(self.output_data_path):
+            os.makedirs(self.output_data_path)
+
+        #Iter individual df zones list
+        for df_zone in self.df_list:
+
+            df = df_zone[0]
+            zone = df_zone[1]
+
+            file_name = f'recommended_light_intensity_{zone}.csv'
+            dst_file = os.path.join(self.output_data_path, file_name)
+            df.to_csv(dst_file, index=False)   
 
 #test
 
