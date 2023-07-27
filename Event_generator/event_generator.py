@@ -8,34 +8,77 @@ from typing import List
 
 class EventGenerator():
     def __init__(self):
+        """
+        Constructor for the class.
+
+        Attributes:
+            current_day_str (str): The current day as a string.
+            list_of_contexts (list): A list to store contexts.
+            deployment_name (str): The deployment name.
+            descriptions_events_today (list): A list to store the descriptions of events for today.
+        """
 
         self.current_day_str = None
         self.list_of_contexts = []
         self.deployment_name = None
 
+        #Initialize class attributes
         self.initialize()
 
         # Create an empty list to store the descriptions of the events for today:
         self.descriptions_events_today = []
 
     def initialize(self,):
+        """
+        Initialize settings and data for the class.
+
+        Parameters:
+            None
+  
+        Returns:
+            None
+        """
         self.save_current_day()
         self.save_gpt_settings()
         self.save_prompts()
 
 
     def save_current_day(self,):
+        """
+        Save the current day in the format "day de month_name".
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+
+        # Get the current day
         current_day = datetime.date.today()
 
+        # Extract the month and day components
         month = current_day.month
         day = current_day.day
 
+        # Create a month list
         month_list = ["Gener", "Febrer", "Març", "Abril", "Maig", "Juny", "Juliol", "Agost", "Setembre", "Octubre", "Novembre", "Desembre"]
 
+        # Update the attribute concatenating the day and the corresponding month name from "month_list"
         self.current_day_str = str(day) + " de " + month_list[month-1]
 
 
     def save_gpt_settings(self,):
+        """
+        Save the GPT settings for connecting to Azure OpenAI model.
+
+        Parameters:
+            None
+        
+        Returns:
+            None
+        """
+
         #AZURE OPENAI
         #Conect to Azure OpenAI model:
         openai.api_key = "a87266acc05c46519ec00fb8bc86fbc5"
@@ -46,10 +89,23 @@ class EventGenerator():
 
 
     def save_prompts(self,):
+        """
+        Generate a list of context dictionaries for different event scenarios.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+
+        # List with different types of events in a certain place
         events_casal = ["un concert", "una actuació", "una obra de teatre", "una xerrada", "una festa de música moderna", "un sopar a l'aire lliure de festa major", "una festa popular"]
 
+        # Get a random event of the previous list
         event_casal = random.choice(events_casal)
 
+        # Generate a context based on the event obtained
         context_generation_night_events =  [
             {
 
@@ -68,7 +124,8 @@ class EventGenerator():
             },
         ]
 
-
+        # Same for other certain places
+        # ...
 
         events_pavello = ["un torneig de bàsquet", "un torneig de voleibol", "un torneig de futbol sala amb partits amistosos entre equips locals de veïns", "un partit de l'equip femení de hoquei sobre patins de la lliga catalana contra un altre equip regional"
 
@@ -350,6 +407,16 @@ class EventGenerator():
 
 
     def generate_events(self,):
+        """
+        Generate events using the GPT model.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+
         # Add the minus 4 so we do not get 11 events for some days
         number_of_events = random.randint(1, len(self.list_of_contexts) - 4)
 
@@ -357,6 +424,8 @@ class EventGenerator():
         today_contexts_events = random.sample(self.list_of_contexts, number_of_events)
 
         print("\nGenerating events..\n")
+        
+        #Iter. through each event context and try to generate an event description
         for event_context in today_contexts_events:
 
             try:
@@ -374,7 +443,14 @@ class EventGenerator():
 class EventExtractor:
 
     def __init__(self, descriptions_events_today: List):
+        """
+        Class constructor to initialize the EventExtractor.
 
+        Attributes:
+            descriptions_events_today (List): A list of descriptions of events for the current day.
+        """
+
+        # Store the list of descriptions of events for the current day
         self.descriptions_events_today = descriptions_events_today
 
         # Define the geolocation relationship dictionary
@@ -408,9 +484,20 @@ class EventExtractor:
         # List where we are going to store the extracted important information about the events:
         self.data_extraction_list = []
 
+        # Initialize OpenAI GPT settings
         self.save_gpt_settings()
 
     def save_gpt_settings(self,):
+            """
+            Method to set up the OpenAI GPT settings for the EventExtractor.
+
+            Parameters:
+                None
+
+            Returns:
+                None            
+            """
+
             #AZURE OPENAI
             #Conect to Azure OpenAI model:
             openai.api_key = "a87266acc05c46519ec00fb8bc86fbc5"
@@ -421,6 +508,15 @@ class EventExtractor:
 
 
     def store_extractor_context(self):
+        """
+        Method to store example prompts for the information extraction process.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
 
         self.extractor_context = [
             {
@@ -485,6 +581,16 @@ class EventExtractor:
         ]
 
     def extract(self):
+        """
+        Method to extract important information (location, date, and time) from the descriptions of events.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+
         print("Extracting data...")
 
         for event in self.descriptions_events_today:
@@ -514,19 +620,48 @@ class EventExtractor:
                 
 
     def append_geolocation(self,):
+        """
+        Method to append geolocation (latitude and longitude) information to the extracted data.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+
+        # Create a new empty list to store the geolocated events.
         new_list = []
+
+        #Iterate through the list of extracted events
         for event in self.data_extraction_list:
+            # Convert the event to lowercase to perform a case-insensitive search.            
             event_lower = event.lower()
+            # Iterate through the dictionary of coordinates.
             for substring, coordinates in self.coord_dict.items():
+                # If the substring is found in the event (ignoring case):
                 if substring in event_lower:
+                    # Get the coordinates associated with the substring and add them to the existing JSON
                     lat, lon = coordinates
                     event = event[:-1] + f', "lat": {lat}, "lon": {lon}}}'
-                    break
-            new_list.append(event)
+                    break # Exit the loop once the match has been found.
+            
+            # Add the modified event to the new list.
+            new_list.append(event) 
         
+        # Replace the extracted data list with the new list containing the geolocation information.
         self.data_extraction_list = new_list
 
     def literal_eval(self):
+        """
+        Method to convert the extracted data from strings to dictionaries using ast.literal_eval.
+
+        Parameters:
+            None
+
+        Returns:
+            List: A list containing the extracted data converted into dictionaries.
+        """
 
         # List with the data converted to dictionaries:
         out_list = []
