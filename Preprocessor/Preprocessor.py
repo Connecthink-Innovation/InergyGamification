@@ -99,7 +99,7 @@ class Preprocessor:
         
         # Preprocess the Google events data for each zone
         for zone in self.zones:
-            self.preprocess_google_events_data("google_events.csv", zone=zone, sampling=None)
+            self.preprocess_google_events_data("google_events.csv", zone=zone, sampling=random.choice(range(1,5)))
 
         # Preprocess weather data for the previous day
         self.preprocess_weather_previous_data("weather_previous.csv")
@@ -210,11 +210,21 @@ class Preprocessor:
             else:
                 df = pd.DataFrame(columns=df.columns)
 
+        #PROD. CODE
+
         # Get the current date and time
-        current_date = datetime.now()
+        #current_date = datetime.now()
+        #current_year = current_date.year
+        #current_month = current_date.month
+        #current_day = current_date.day
+        
+
+        #PREPROD. CODE
+        current_date = datetime(year=2023, month=6, day=26)
         current_year = current_date.year
         current_month = current_date.month
         current_day = current_date.day
+        #---------------
 
         new_data = []
         # Iterate over the rows of the DataFrame
@@ -274,8 +284,8 @@ class Preprocessor:
 
         # Create new df
         processed_df = pd.DataFrame(new_data, columns=["event_title", "event_location", "event_description", "event_zone", "event_lat", "event_lon", "Year", "Month", "Day", "Hour"])
-        #processed_df["Day"] = processed_df["Day"].replace({14: 26, 15: 27})
-        #processed_df["Month"] = processed_df["Month"].replace({7: 6})
+        processed_df["Day"] = processed_df["Day"].replace({14: 26, 15: 27})
+        processed_df["Month"] = processed_df["Month"].replace({7: 6})
 
         # Group by Year, Month, Day, and Hour, and create lists of the corresponding values
         if len(processed_df) > 0:
@@ -944,7 +954,6 @@ class Preprocessor:
                 else:
                     # If the file is related to previous data, read it into the "self.df_previous" dataframe
                     file_path = os.path.join(self.temp_data_path, file_name)
-                    print(file_path)
                     other_df = pd.read_csv(file_path)
                     self.df_previous = other_df
                 
