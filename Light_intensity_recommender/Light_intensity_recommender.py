@@ -329,7 +329,7 @@ class LightIntensityRecommender:
     
 
     #CALCULATE ENERGY SAVING
-    def calculate_energy_savings(self,):
+    def calculate_intensity_savings(self,):
         """
         Method to calculate the energy savings for each zone and hour based on the recommended light intensity.
 
@@ -346,20 +346,44 @@ class LightIntensityRecommender:
             None
         """
 
+        #Temporary list to save the modified zone/iluminaire df
         df_list_temp = []
+        #Temporary list to save savings summary
+        savings_summary_list = []
+
+        #Loop through each zone df
         for df_zone in self.df_list:
 
             df = df_zone[0]
             zone = df_zone[1]
 
-            df['savings'] = df.apply(self.energy_savings_formula, axis=1)
+            # Calculate intensity savings (of each luminaire and each zone)
+            individual_savings_list, zone_savings = self.intensity_savings_formula(df)  
+            
+            # Save savings for luminaire in that zone
+            df["savings"] = individual_savings_list
 
+            # Save savings for zone
+            savings_summary_list.append((zone, zone_savings))
+
+            # Save updated df in temporary list
             df_list_temp.append((df, zone))
         
+        # Calculate savings for the entire municipality
+        total_savings = [elem[1] for elem in savings_summary_list if elem]
+        total_savings_sum = sum(total_savings)
+        savings_summary_list.append(("total", total_savings_sum))
+
+        # Update the original df list of the class
         self.df_list = df_list_temp
 
+        # Create df attribute class to store the df of savings per zone and municipality
+        self.df_savings_summary = pd.DataFrame(savings_summary_list, columns=["zone", "zone_savings"])
+
+        
+
     # >> UTILS CES
-    def energy_savings_formula(self, row):
+    def intensity_savings_formula(self, df):
         """
         Utility method to calculate energy savings based on the difference between recommended and real light intensity.
 
@@ -373,7 +397,18 @@ class LightIntensityRecommender:
         Returns:
             float: The calculated energy savings for the current row.
         """
-        pass
+
+        individual_savings_list = []
+        zone_savings = 0
+
+        for index, row in df.iterrows():
+            individual_savings = row["real_intensity"]-row["recommended_intensity"]
+            individual_savings_list.append(individual_savings)
+
+        
+        zone_savings = sum(individual_savings_list)
+
+        return individual_savings_list, zone_savings
 
     #SAVE OUTPUT DATA
     def save_output_data(self):
@@ -395,7 +430,7 @@ class LightIntensityRecommender:
         if not os.path.exists(self.output_data_path):
             os.makedirs(self.output_data_path)
 
-        # Iter individual df zones list
+        # Iter individual df zones list (save individual zone csv's)
         for df_zone in self.df_list:
 
             df = df_zone[0]
@@ -404,6 +439,14 @@ class LightIntensityRecommender:
             file_name = f'recommended_light_intensity_{zone}.csv'
             dst_file = os.path.join(self.output_data_path, file_name)
             df.to_csv(dst_file, index=False)   
+        
+        # Save saving summary by zone csv
+        file_name = f'savings_summary.csv'
+        dst_file = os.path.join(self.output_data_path, file_name)
+        self.df_savings_summary.to_csv(dst_file, index=False)
+
+
+
 
 #test
 
@@ -430,8 +473,17 @@ def run_intensity_recommender():
     light_intensity_recommender = LightIntensityRecommender()
     light_intensity_recommender.get_input_data()
     light_intensity_recommender.calculate_recommended_light_intensity(params)
-    light_intensity_recommender.calculate_energy_savings()
+    light_intensity_recommender.calculate_intensity_savings()
     light_intensity_recommender.save_output_data()
 
 run_intensity_recommender()
 
+        #CO2_consumido = (potencia_en_kw * tiempo_encendido_en_horas) * factor_emision_CO2
+        #donde potencia_en_kw hace referencia PowerAparent
+        #donde PowerAparent hace referencia a sqrt((PowerActive)**2 + (PowerReactive)**2)
+
+
+        #CO2_consumido_real = (potencia_en_kw * intensidad_real100% * tiempo_encendido_en_horas) * factor_emision_CO2
+        #CO2_consumido_recomm = (potencia_en_kw * intensidad_recomm * tiempo_encendido_en_horas) * factor_emision_CO2
+
+        #CO2_ahorrado = CO2_consumido_real - CO2_consumido_recomm

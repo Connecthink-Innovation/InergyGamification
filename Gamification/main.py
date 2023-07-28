@@ -37,7 +37,7 @@ class Gamification():
         light_intensity_recommender = LightIntensityRecommender()
         light_intensity_recommender.get_input_data()
         light_intensity_recommender.calculate_recommended_light_intensity(params)
-        light_intensity_recommender.calculate_energy_savings()
+        light_intensity_recommender.calculate_intensity_savings()
         light_intensity_recommender.save_output_data()
 
 
