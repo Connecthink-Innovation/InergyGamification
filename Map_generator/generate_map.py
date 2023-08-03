@@ -237,11 +237,13 @@ class MapGenerator():
         print("html map generated in the file map.html")
 
 # Temporal main:
-map_generator = MapGenerator()
-map_generator.get_input_data()
-map_generator.generate_html_map()
-map_generator.save_output_data()
+def main():
+    map_generator = MapGenerator()
+    map_generator.get_input_data()
+    map_generator.generate_html_map()
+    map_generator.save_output_data()
 
+#main()
 
 
 

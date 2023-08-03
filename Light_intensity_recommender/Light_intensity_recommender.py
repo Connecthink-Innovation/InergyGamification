@@ -549,5 +549,5 @@ def run_intensity_recommender():
     light_intensity_recommender.calculate_co2_consumption()
     light_intensity_recommender.save_output_data()
 
-run_intensity_recommender()
+#run_intensity_recommender()
 

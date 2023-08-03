@@ -180,7 +180,10 @@ class NodeClassifier():
         shutil.copy2(src_file, dst_file)
 
 #DEBUG
-node_clasif = NodeClassifier()
-node_clasif.get_input_data()
-node_clasif.classify_nodes()
-node_clasif.save_output_data()
+def main():
+    node_clasif = NodeClassifier()
+    node_clasif.get_input_data()
+    node_clasif.classify_nodes()
+    node_clasif.save_output_data()
+
+#main()

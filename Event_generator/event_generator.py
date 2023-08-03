@@ -720,7 +720,7 @@ def main():
     event_extractor.save_output()
   
 
-main()
+#main()
 
 
 

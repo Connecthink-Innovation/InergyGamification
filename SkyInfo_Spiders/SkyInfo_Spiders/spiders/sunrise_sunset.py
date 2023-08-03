@@ -111,4 +111,4 @@ def run_spider():
     process.crawl(SunriseSunsetSpider)
     process.start()
 
-run_spider()
+#run_spider()

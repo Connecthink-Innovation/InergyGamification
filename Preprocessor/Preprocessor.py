@@ -1103,10 +1103,12 @@ class Preprocessor:
 
 
 #DEBUG MAIN
-preprocessor = Preprocessor()
-#preprocessor.get_input_data()
-preprocessor.preprocess_data()
-preprocessor.save_output_data()
+def main():
+    preprocessor = Preprocessor()
+    preprocessor.get_input_data()
+    preprocessor.preprocess_data()
+    preprocessor.save_output_data()
 
+#main()
 
 

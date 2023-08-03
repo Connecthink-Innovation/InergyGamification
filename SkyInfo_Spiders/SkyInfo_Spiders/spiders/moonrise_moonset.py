@@ -99,4 +99,4 @@ def run_spider():
     process.crawl(MoonriseMoonsetSpider)
     process.start()
 
-run_spider()
+#run_spider()
