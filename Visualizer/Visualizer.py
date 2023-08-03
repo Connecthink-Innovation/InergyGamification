@@ -224,5 +224,5 @@ def run_visualizer():
     visualizer.save_output_data()
 
 # Call the function to run the visualizer
-run_visualizer()
+#run_visualizer()
 
