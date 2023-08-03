@@ -138,10 +138,10 @@ class LightIntensityRecommender:
                             df_condition = pd.concat([df1, df2])
                             df_condition = df_condition.reset_index(drop=True)
 
-                            snow_score = self.calc_snow_score(df_condition, index, row)
+                            snow_score = self.calc_snow_score(df_condition, index+len(df1), row)
                             if snow_score:
                                 recommended_intensity -= 10*snow_score
-                                recommended_intensity_explanation += f'It has snowed the last few days and it affects the lighting of the streets, recommended intensity decreases by {10*rain_score}%\n'
+                                recommended_intensity_explanation += f'It has snowed the last few days and it affects the lighting of the streets, recommended intensity decreases by {10*snow_score}%\n'
 
                         if "rain" in args:
                             rain_score = self.calc_rain_score(df_next, index, row)
@@ -382,7 +382,7 @@ class LightIntensityRecommender:
 
         
 
-    # >> UTILS CES
+    # >> UTILS CIS
     def intensity_savings_formula(self, df):
         """
         Utility method to calculate energy savings based on the difference between recommended and real light intensity.
@@ -409,6 +409,78 @@ class LightIntensityRecommender:
         zone_savings = sum(individual_savings_list)
 
         return individual_savings_list, zone_savings
+
+
+    #CALCULATE CO2 SAVING
+    def calculate_co2_consumption(self,):
+
+        """
+        Method to calculate real-recommended co2 levels based on real-recommended light intensity.
+
+        Parameters:
+            None
+
+        Returns:
+            None
+        """
+
+        #Loop through each zone df
+
+        potencia_en_kw = 0.1 #de momento 
+        factor_emision_co2 = 0.5 #de momento
+        horas = 1 #de momento
+
+        for i, df_zone in enumerate(self.df_list):
+
+            df = df_zone[0]
+            zone = df_zone[1]
+
+            
+            # Calculate CO2 consumption for real intensity
+            df['real_CO2_consumption'] = df.apply(lambda row: self.co2_consumption_formula(1, row['real_intensity'], potencia_en_kw, horas, factor_emision_co2), axis=1)
+
+            # Calculate CO2 consumption for recommended intensity
+            df['recommended_CO2_consumption'] = df.apply(lambda row: self.co2_consumption_formula(1, row['recommended_intensity'], potencia_en_kw, horas, factor_emision_co2), axis=1)
+
+            # Update the DataFrame in the list
+            self.df_list[i] = (df, zone)
+
+
+        #CO2_consumido = (potencia_en_kw * tiempo_encendido_en_horas) * factor_emision_CO2
+        #donde potencia_en_kw hace referencia PowerAparent
+        #donde PowerAparent hace referencia a sqrt((PowerActive)**2 + (PowerReactive)**2)
+
+        #CO2_consumido_real = (potencia_en_kw * intensidad_real100% * tiempo_encendido_en_horas) * factor_emision_CO2
+        #CO2_consumido_recomm = (potencia_en_kw * intensidad_recomm * tiempo_encendido_en_horas) * factor_emision_CO2
+
+    def co2_consumption_formula(self, n_luminaires, intensity_percent, potencia_en_kw, horas, factor_emision_co2):
+        """
+        Method to calculate CO2 consumption based on real-recommended light intensity.
+
+        Parameters:
+            intensity (float): Intensity value (real or recommended).
+            potencia_en_kw (float): Power in kilowatts.
+            factor_emision_co2 (float): CO2 emission factor.
+
+        Returns:
+            float: The calculated CO2 consumption.
+        """
+
+        # Calculate CO2 consumption for a specific intensity
+        intensity = intensity_percent/100
+        CO2_consumido = n_luminaires * ((potencia_en_kw * intensity * horas) * factor_emision_co2)
+
+        return CO2_consumido
+    
+
+    #CALCULATE CO2 SAVING
+    def calculate_co2_savings(self,):
+        #CO2_ahorrado = CO2_consumido_real - CO2_consumido_recomm
+        pass
+    
+    # >> UTILS CCS
+    def co2_savings_formula(self,):
+        pass
 
     #SAVE OUTPUT DATA
     def save_output_data(self):
@@ -474,16 +546,8 @@ def run_intensity_recommender():
     light_intensity_recommender.get_input_data()
     light_intensity_recommender.calculate_recommended_light_intensity(params)
     light_intensity_recommender.calculate_intensity_savings()
+    light_intensity_recommender.calculate_co2_consumption()
     light_intensity_recommender.save_output_data()
 
 run_intensity_recommender()
 
-        #CO2_consumido = (potencia_en_kw * tiempo_encendido_en_horas) * factor_emision_CO2
-        #donde potencia_en_kw hace referencia PowerAparent
-        #donde PowerAparent hace referencia a sqrt((PowerActive)**2 + (PowerReactive)**2)
-
-
-        #CO2_consumido_real = (potencia_en_kw * intensidad_real100% * tiempo_encendido_en_horas) * factor_emision_CO2
-        #CO2_consumido_recomm = (potencia_en_kw * intensidad_recomm * tiempo_encendido_en_horas) * factor_emision_CO2
-
-        #CO2_ahorrado = CO2_consumido_real - CO2_consumido_recomm

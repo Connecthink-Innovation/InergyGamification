@@ -10,7 +10,10 @@ from scipy.spatial import cKDTree
 
 
 class Preprocessor:
-    def __init__(self):
+    def __init__(self, events_source):
+        # Indicates the source of the events to be used
+        self.events_source = events_source
+
         # Initialize paths for input, temporary, and output data directories
         self.input_data_path = os.path.join("Preprocessor", "input_data")
         self.temp_data_path = os.path.join("Preprocessor", "temp_data")
@@ -26,7 +29,7 @@ class Preprocessor:
         self.zones = []
 
     #GET INPUT DATA
-    def get_input_data(self):
+    def get_input_data(self,):
         """
         Method to collect input data from multiple directories and 
         copy CSV files to the "input_data" folder.
@@ -43,9 +46,10 @@ class Preprocessor:
 
         # Obtain the absolute paths of the "data" folders in specific directories
         nodeclassifier_data_path = os.path.abspath(os.path.join(current_dir, "Node_classifier", "output_data"))
-        rss_data_path = os.path.abspath(os.path.join(current_dir, "RSS_Spiders", "data"))
         skyinfo_data_path = os.path.abspath(os.path.join(current_dir, "SkyInfo_Spiders", "data"))
         lightprice_data_path = os.path.abspath(os.path.join(current_dir, "LightPrice_Spiders", "data"))
+        rss_data_path = os.path.abspath(os.path.join(current_dir, "RSS_Spiders", "data"))
+        events_data_path = os.path.abspath(os.path.join(current_dir, "Event_generator", "data"))
 
         # Check if the "input_data" folder exists, if not, create it
         if not os.path.exists(self.input_data_path):
@@ -53,9 +57,10 @@ class Preprocessor:
 
         # Copy all the CSV files from the "data" folders to the "input_data" folder using "copy_files_to_input_data" method
         self.copy_files_to_input_data(nodeclassifier_data_path)
-        self.copy_files_to_input_data(rss_data_path)
         self.copy_files_to_input_data(skyinfo_data_path)
         self.copy_files_to_input_data(lightprice_data_path)
+        self.copy_files_to_input_data(rss_data_path)
+        self.copy_files_to_input_data(events_data_path)
         
     # >> UTILS GIP
     def copy_files_to_input_data(self, source_dir):
@@ -98,8 +103,13 @@ class Preprocessor:
         #self.preprocess_rss_data("rss_canyelles.csv")
         
         # Preprocess the Google events data for each zone
+        if self.events_source == "google":
+            events_filename = "google_events.csv"
+        else:
+            events_filename = "fake_events.csv"
+
         for zone in self.zones:
-            self.preprocess_google_events_data("google_events.csv", zone=zone, sampling=random.choice(range(1,5)))
+            self.preprocess_google_events_data(events_filename, zone=zone, sampling=random.choice(range(1,5)))
 
         # Preprocess weather data for the previous day
         self.preprocess_weather_previous_data("weather_previous.csv")

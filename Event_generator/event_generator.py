@@ -1,10 +1,13 @@
+# -*- coding: utf-8 -*-
+
 import datetime
 import openai
 import random
 
 import ast
 from typing import List
-
+import csv
+import os 
 
 class EventGenerator():
     def __init__(self):
@@ -27,6 +30,7 @@ class EventGenerator():
 
         # Create an empty list to store the descriptions of the events for today:
         self.descriptions_events_today = []
+
 
     def initialize(self,):
         """
@@ -115,9 +119,9 @@ class EventGenerator():
 
                     Crea un event nocturn fictici com {event_casal} que es celebri a la plaça del casal de Canyelles
 
-                    el dia {self.current_day_str}. L'event serà publicat a les xarxes socials. Es important que la descripció del event sigui molt extensa i sigui el més creible possible, que inclogui la data i la hora
+                    el dia {self.current_day_str}. L'event serà publicat a les xarxes socials. Es important que la descripció del event sigui molt extensa i sigui el més creible possible, que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i que també inclogui la localització del event, que en aquest cas és la Plaça del casal. Respon únicament amb la descripcó de l'event.
+                    i que també inclogui la localització del event, que en aquest cas és la Plaça del casal. Respon únicament amb la descripcó de l'event.
 
                 """
 
@@ -146,9 +150,9 @@ class EventGenerator():
 
                     Crea un event esportiu fictici com {event_pavello} que es pugui celebrar al pavelló municipal del municipi de Canyelles
 
-                    el dia {self.current_day_str}. L'event serà publicat a les xarxes socials. Es important que la descripció del event sigui molt extensa i que inclogui la data i la hora
+                    el dia {self.current_day_str}. L'event serà publicat a les xarxes socials. Es important que la descripció del event sigui molt extensa i que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és el pavelló municipal. Respon únicament amb la descripcó de l'event.
+                    i la localització del event, que en aquest cas és el pavelló municipal. Respon únicament amb la descripcó de l'event.
 
                 """
 
@@ -166,9 +170,9 @@ class EventGenerator():
 
                     Crea un event esportiu fictici que es pugui celebrar al camp de futbol municipal del municipi de Canyelles
 
-                    el dia {self.current_day_str}. Es important que la descripció del event sigui molt extensa i que inclogui la data i la hora
+                    el dia {self.current_day_str}. Es important que la descripció del event sigui molt extensa i que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és el camp de futbol municipal. Respon únicament amb la descripcó de l'event i no diguis que és fictici.
+                    i la localització del event, que en aquest cas és el camp de futbol municipal. Respon únicament amb la descripcó de l'event i no diguis que és fictici.
 
                 """
 
@@ -192,9 +196,9 @@ class EventGenerator():
 
                     Creea la descripció d'un event que es pugui celebrar a un camp de fútbol relacionat amb {event_futbol_field2} el dia {self.current_day_str}.
 
-                    Es important que la descripció del event sigui molt extensa i que inclogui la data i la hora
+                    Es important que la descripció del event sigui molt extensa i que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és el camp de fútbol de la urbanització Vora Sitges.
+                    i la localització del event, que en aquest cas és el camp de fútbol de la urbanització Vora Sitges.
 
                 """
 
@@ -212,9 +216,9 @@ class EventGenerator():
 
                     Crea un event que es pugui celebrar a la Escola Pública Sant Nicolau de Canyelles
 
-                    el dia {self.current_day_str}. Es important que la descripció del event sigui molt extensa i que inclogui la data i la hora
+                    el dia {self.current_day_str}. Es important que la descripció del event sigui molt extensa i que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és la Escola Pública Sant Nicolau de Canyelles. Respon únicament amb la descripcó de l'event.
+                    i la localització del event, que en aquest cas és la Escola Pública Sant Nicolau de Canyelles. Respon únicament amb la descripcó de l'event.
 
                 """
 
@@ -240,9 +244,9 @@ class EventGenerator():
 
                     el dia {self.current_day_str}. l'event ha d'estar relacionat amb {event_hotelito}.
 
-                    Es important que la descripció del event sigui molt extensa i que inclogui la data i la hora
+                    Es important que la descripció del event sigui molt extensa i que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és els jardins el Hotelito.
+                    i la localització del event, que en aquest cas és els jardins el Hotelito.
 
                 """
 
@@ -268,9 +272,9 @@ class EventGenerator():
 
                     el dia {self.current_day_str}. L'event ha d'anar relacionat amb l'oci nocturn com {event_hotelito_night}.
 
-                    Es important que la descripció del event sigui molt extensa (com a mínim 100 paraules) i que inclogui la data concreta i la hora
+                    Es important que la descripció del event sigui molt extensa (com a mínim 100 paraules) i que inclogui la data concreta i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és els jardins el Hotelito.
+                    i la localització del event, que en aquest cas és els jardins el Hotelito.
 
                 """
 
@@ -288,7 +292,7 @@ class EventGenerator():
                 "content": f"""
                     Crea un event simulat que es celebri a la vila vacacional CANYA hlclub
                     el dia {self.current_day_str}. L'event ha d'anar relacionat amb l'oci nocturn com {event_CANYA_club}.
-                    Es molt important que en la descripció aparegui la hora a la que comença l'event i l'adreça del CANYA hclub que és Carrer l'Hospitalet, 17, 08811 Califòrnia, Barcelona.
+                    Es molt important que en la descripció aparegui el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM) i l'adreça del CANYA hclub que és Carrer l'Hospitalet, 17, 08811 Califòrnia, Barcelona.
                     Respon únicament amb la descripcó de l'event.
 
                 """
@@ -313,9 +317,9 @@ class EventGenerator():
 
                     Crea un event simulat com {event_club_patinatge} que es celebri al club de patinatge arístic de Canyelles el dia {self.current_day_str}.
 
-                    Es important que la descripció del event inclogui la data concreta i la hora
+                    Es important que la descripció del event inclogui la data concreta i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és el club de patinatge arístic. Respon únicament amb la descripció de l'event.
+                    i la localització del event, que en aquest cas és el club de patinatge arístic. Respon únicament amb la descripció de l'event.
 
                 """
 
@@ -341,7 +345,7 @@ class EventGenerator():
 
                     el dia {self.current_day_str}. L'event ha d'anar relacionat amb l'oci nocturn com {event_TARA}.
 
-                    Es molt important que en la descripció aparegui la hora a la que comença i la adreça del TARA club que és Carrer Nicaragua, 21, 08811 Canyelles, Barcelona.
+                    Es molt important que en la descripció aparegui el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM) i la adreça del TARA club que és Carrer Nicaragua, 21, 08811 Canyelles, Barcelona.
 
                     Respon únicament amb la descripcó de l'event.
 
@@ -368,9 +372,9 @@ class EventGenerator():
 
                     Crea un event simulat que es celebri al castell de Canyelles el dia {self.current_day_str} com {event_castell}.
 
-                    Es important que la descripció del event sigui molt extensa i que inclogui la data i la hora
+                    Es important que la descripció del event sigui molt extensa i que inclogui la data i el rang d'hores a la que comença y termina l'event en format (HH:MM-HH:MM)
 
-                    a la que comença i la localització del event, que en aquest cas és el castell de Canyelles.
+                    i la localització del event, que en aquest cas és el castell de Canyelles.
 
                 """
 
@@ -418,7 +422,7 @@ class EventGenerator():
         """
 
         # Add the minus 4 so we do not get 11 events for some days
-        number_of_events = random.randint(1, len(self.list_of_contexts) - 4)
+        number_of_events = random.randint(1, len(self.list_of_contexts))
 
         # Get a random list len=number_of_elements from the list of contexts:
         today_contexts_events = random.sample(self.list_of_contexts, number_of_events)
@@ -484,6 +488,9 @@ class EventExtractor:
         # List where we are going to store the extracted important information about the events:
         self.data_extraction_list = []
 
+        # List with the data converted to dictionaries:
+        self.out_list = []
+
         # Initialize OpenAI GPT settings
         self.save_gpt_settings()
 
@@ -522,7 +529,7 @@ class EventExtractor:
             {
                 "role": "user",
                 "content": """
-                    Et passaré la descripció d'un event. Necessito que em retornis en forma de diccionari de python la localització de l'event, la data i la hora en la que comença. Respon entesos si ho has entés.
+                    Et passaré la descripció d'un event. Necessito que em retornis en forma de diccionari de python el títol de l'event, localització, la data i rang d'hores on l'event és atiu. Respon entesos si ho has entés.
                 """
             },
             {
@@ -532,25 +539,25 @@ class EventExtractor:
             {
                 "role": "user",
                 "content": """
-                    Festa de White Sensation el 10 de juliol a les 22:00 h. a la Urbanització California. Els jardins de l'Hotelito seran el lloc per gaudir de la millor música electrònica amb el millor vestimenta de blanc per als assistents.
+                    Festa de White Sensation el 10 de juliol de 21:00 a 23:00 h. a la Urbanització California. Els jardins de l'Hotelito seran el lloc per gaudir de la millor música electrònica amb el millor vestimenta de blanc per als assistents.
                 """
             },
             {
                 "role": "assistant",
                 "content": """
-                    {"localització": "Jardins de l'Hotelito Urbanització California", "data": "10 de juliol", "hora": "22:00"}
+                    {"Title":"Festa de White Sensation", "Location": "Jardins de l'Hotelito Urbanització California", "Schedule": "21:00-23:00", "Description: Festa de White Sensation. Gaudeix de la millor música electrònica amb el millor vestimenta de blanc per als assistents.}
                 """
             },
             {
                 "role": "user",
                 "content": """
-                    Us convidem al nostre event nocturn de teatre a la plaça del casal de Canyelles el proper 7 de Juliol. A partir de les 21:00h, els nostres actors i actrius ens transportaran a una història emocionant i intrigant que ens mantindrà pegats a la cadira fins al final del show. \n\nAmb una decoració espectacular on la il·luminació serà el punt clau per crear l'ambient adequat, podràs gaudir del millor teatre a l'aire lliure. La història és una trama de misteri on els amants dels escenaris seran el més ben atesos, amb actors i actrius que lluiran disfresses exòtiques i amb un guion ben treballat.\n\nLa plaça del casal de Canyelles és el lloc perfecte per a aquesta nit de teatre, amb un escenari ampli que ens permetrà fer una espectacular representació per a tots els assistents. Els seguidors del teatre tenen una cita ineludible a Canyelles que no es poden perdre. \n\nNo t'hagis de preocupar, si la calor fa que et refregiïs, els nostres amics de Canyelles estaran a la nostra disposició per a mantenir-nos frescos amb begudes en una nit que promet ser la més entretinguda de l'estiu. \n\nNo hi haurà cap mena de dubte, l'event nocturn de teatre a la plaça del casal de Canyelles el 7 de Juliol serà l'event més popular de la nit, i tu no pots faltar. T'esperem per a viure una nit inoblidable de teatre sota les estrelles.
+                    Us convidem al nostre event nocturn de teatre a la plaça del casal de Canyelles el proper 7 de Juliol. De les 20:00 - 22:00 h, els nostres actors i actrius ens transportaran a una història emocionant i intrigant que ens mantindrà pegats a la cadira fins al final del show. \n\nAmb una decoració espectacular on la il·luminació serà el punt clau per crear l'ambient adequat, podràs gaudir del millor teatre a l'aire lliure. La història és una trama de misteri on els amants dels escenaris seran el més ben atesos, amb actors i actrius que lluiran disfresses exòtiques i amb un guion ben treballat.\n\nLa plaça del casal de Canyelles és el lloc perfecte per a aquesta nit de teatre, amb un escenari ampli que ens permetrà fer una espectacular representació per a tots els assistents. Els seguidors del teatre tenen una cita ineludible a Canyelles que no es poden perdre. \n\nNo t'hagis de preocupar, si la calor fa que et refregiïs, els nostres amics de Canyelles estaran a la nostra disposició per a mantenir-nos frescos amb begudes en una nit que promet ser la més entretinguda de l'estiu. \n\nNo hi haurà cap mena de dubte, l'event nocturn de teatre a la plaça del casal de Canyelles el 7 de Juliol serà l'event més popular de la nit, i tu no pots faltar. T'esperem per a viure una nit inoblidable de teatre sota les estrelles.
                 """
             },
             {
                 "role": "assistant",
                 "content": """
-                    {"localització": "Plaça del casal de Canyelles", "data": "7 de juliol", "hora": "21:00"}
+                    {"Title":Teatre nocturn", "Location": "Plaça del casal de Canyelles", "Schedule": "20:00-22:00", "Description: "Teatre nocturn a la plaça del casal de Canyelles. Els nostres actors i actrius ens transportaran a una història emocionant i intrigant que ens mantindrà pegats a la cadira fins al final del show. \n\nAmb una decoració espectacular on la il·luminació serà el punt clau per crear l'ambient adequat, podràs gaudir del millor teatre a l'aire lliure. La història és una trama de misteri on els amants dels escenaris seran el més ben atesos, amb actors i actrius que lluiran disfresses exòtiques i amb un guion ben treballat.\n\nLa plaça del casal de Canyelles és el lloc perfecte per a aquesta nit de teatre, amb un escenari ampli que ens permetrà fer una espectacular representació per a tots els assistents. Els seguidors del teatre tenen una cita ineludible a Canyelles que no es poden perdre. \n\nNo t'hagis de preocupar, si la calor fa que et refregiïs, els nostres amics de Canyelles estaran a la nostra disposició per a mantenir-nos frescos amb begudes en una nit que promet ser la més entretinguda de l'estiu. \n\nNo hi haurà cap mena de dubte, l'event nocturn de teatre a la plaça del casal de Canyelles el 7 de Juliol serà l'event més popular de la nit, i tu no pots faltar. T'esperem per a viure una nit inoblidable de teatre sota les estrelles"}
                 """
             },
             {
@@ -562,7 +569,7 @@ class EventExtractor:
             {
                 "role": "assistant",
                 "content": """
-                    {"localització": "Escola Pública Sant Nicolau de Canyelles", "data": "7 de juliol", "hora": "10:00"}
+                    {"Title":"Event d'estiu", "Location": "Escola Pública Sant Nicolau de Canyelles", "Schedule": "10:00-22:00", "Description": "Vine amb la família i amics a gaudir d'un dia ple de diversió i entreteniment per a totes les edats.\n\nComençarem a les 10 del matí amb un esmorzar saludable per agafar forces i començar a jugar a les diferents activitats que hem preparat: jocs d'aigua, inflables, tallers de manualitats, face painting i moltes sorpreses més! També tindrem una zona de food trucks perquè pugueu gaudir d'una àmplia varietat de menjar i beguda.\n\nA la tarda, a partir de les 18h, podrem gaudir d'un concert en directe a càrrec d'un grup local de música que tocaran els millors èxits de l'estiu.\n\nLa festa acabarà cap a les 22h, però abans gaudirem d'una una gran festa de la espuma per refrescar-nos i acabar el dia amb una gran somriure. No et perdis aquesta gran festa d'estiu a la Escola Pública Sant Nicolau de Canyelles! Ens veiem allà!"}
                 """
             },
             {
@@ -574,7 +581,7 @@ class EventExtractor:
             {
                 "role": "assistant",
                 "content": """
-                    {"localització": "Camp de futbol de la urbanització Vora Sitges", "data": "7 de juliol", "hora": "10:00"}
+                    {"Title": Jornades de les Ciències Naturales", "Location": "Camp de futbol de la urbanització Vora Sitges", "Schedule": "10:00-18:00", "Description": Emocionants Jornades de les Ciències Naturals. Aquesta és una oportunitat única per explorar, estimular la curiositat i apropar-te a la ciència a través de diferents activitats.\n\nL'esdeveniment està programat per començar a les 10 del matí i continuar fins a les 6 de la tarda, amb moltes activitats emocionants pel camí. Vindràs a participar en tallers interactius que inclouen experimentació i aprenentatge sobre l'entorn natural que ens envolta.\n\nEls tallers seran dirigits pels nostres guies especialitzats en ciències naturals, que us oferiran les seves habilitats i coneixements expert per ajudar-vos a explorar i descobrir el món que ens rodeja. A més, també tindrem a disposició una àmplia gamma de material didàctic que us ajudarà en la comprensió dels nous conceptes.\n\nEl camp de futbol de Vora Sitges és un lloc ideal per celebrar les nostres Jornades de les Ciències Naturals, i estem segurs que les instal·lacions ens proporcionaran un espai ample i adequat per realitzar totes les activitats programades.\n\nEl transport no serà un problema, ja que hi hauran autobusos de línia que us acostaran fins al lloc de l'esdeveniment, i us garantim un ambient segur i agradable per a tothom.\n\nPer si no en teniu prou, també hi haurà una àmplia gamma d'alimentació i beguda disponible per a tothom. Si us plau, no oblideu dur roba còmoda i, és clar, una gran dosi de curiositat!\n\nAixí doncs, no espereu més i uneix-te a les nostres emocionants Jornades de les Ciències Naturals al camp de futbol de Vora Sitges el proper 7 de juliol. Aquest esdeveniment us obre les portes a un món meravellós de descobriments i aprendizatge, i no voldreu perdre-vos'l!}
 
                 """
             },
@@ -663,24 +670,36 @@ class EventExtractor:
             List: A list containing the extracted data converted into dictionaries.
         """
 
-        # List with the data converted to dictionaries:
-        out_list = []
-
         print("Converting the string data into dictionaries...")
         for event in self.data_extraction_list:
 
             # Replace the '\' because in some cases chat gpt puts some of this characters in the strings
             event = event.replace("\\", "")
             try:
-                out_list.append(ast.literal_eval(event))
+                self.out_list.append(ast.literal_eval(event))
             except Exception as e:
                 print("\nERROR converting data into dictionaries:\n", event)
 
+    def save_output(self,):
+        path = os.path.join("data", "fake_events.csv")
 
-        return out_list
+         # Abrir el archivo CSV en modo escritura
+        with open(path, 'w', newline='') as archivo_csv:
+            # Obtener las claves del primer diccionario como nombres de columnas
+            columnas = self.out_list[0].keys()
 
+            # Crear un objeto DictWriter para escribir en el archivo CSV
+            writer = csv.DictWriter(archivo_csv, fieldnames=columnas)
+
+            # Escribir el encabezado con los nombres de las columnas
+            writer.writeheader()
+
+            # Escribir los datos de cada diccionario como filas en el archivo CSV
+            for diccionario in self.out_list:
+                writer.writerow(diccionario)
 
 def main():
+    os.chdir("./Event_generator")
 
     event_generator = EventGenerator()
     event_generator.generate_events()
@@ -695,8 +714,10 @@ def main():
     event_extractor.extract()
     event_extractor.append_geolocation()
 
-    events_dict = event_extractor.literal_eval()
-    print("Events dict:\n ", events_dict)
+    event_extractor.literal_eval()
+    print("Events dict:\n ", event_extractor.out_list)
+
+    event_extractor.save_output()
   
 
 main()

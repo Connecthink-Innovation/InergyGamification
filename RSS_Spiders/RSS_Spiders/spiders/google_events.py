@@ -332,7 +332,7 @@ class GoogleEventsSpider(scrapy.Spider):
 
             self.df.to_csv(path, index=False)
 
-def main():
+def run_spider():
     os.chdir("./RSS_Spiders")
 
     settings = get_project_settings()
@@ -346,5 +346,5 @@ def main():
     process.start()
     process.stop()
 
-if __name__ == '__main__':
-    main()
+
+#run_spider()
