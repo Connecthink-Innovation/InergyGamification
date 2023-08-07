@@ -23,14 +23,14 @@ class SunriseSunsetSpider(Spider):
 
         
         #PROD. CODE
-        if self.mode = "prod":
+        if self.mode == "prod":
             date = datetime.now()
             year = str(date.year)
             month = str(date.month)
         
 
         #PREPROD. CODE
-        if self.mode = "debug":
+        if self.mode == "debug":
             year = "2023"
             month = "6"
         #---------------

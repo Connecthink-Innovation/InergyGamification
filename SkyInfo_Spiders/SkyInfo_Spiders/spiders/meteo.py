@@ -103,7 +103,7 @@ def run_scrapy(mode):
 
     
     #DEBUG. CODE
-    if mode == "debug"
+    if mode == "debug":
         dates = ["2023-06-26", "2023-06-25", "2023-06-24"]
     #---------------
     
@@ -122,7 +122,7 @@ def run_scrapy(mode):
 
     
     #DEBUG. CODE
-    if mode == "debug"
+    if mode == "debug":
         date_actual_str = "2023-06-26"
         date_next_str = "2023-06-27"
     #---------------

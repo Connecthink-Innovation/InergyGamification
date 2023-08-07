@@ -21,13 +21,13 @@ class MoonPhasesSpider(Spider):
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
         
         #PROD. CODE
-        if self.mode = "prod":
+        if self.mode == "prod":
             date = datetime.now()
             year = str(date.year)
         
 
         #DEBUG. CODE
-        if self.mode = "debug":
+        if self.mode == "debug":
             year = "2023"
         #---------------
 

@@ -21,7 +21,7 @@ from Visualizer.Visualizer import Visualizer
 import argparse 
 
 class Gamification():
-    def __init__(self, mode, events_source, recommender_params):
+    def __init__(self, mode, events_source, recommender_params, plots_results):
         #Mode debug or prod
         self.mode = mode
 
@@ -32,10 +32,10 @@ class Gamification():
         self.recommender_params = recommender_params
 
         # Display results if True
-        self.plot_results = plots_results 
+        self.plot_results = plots_results  
 
 
-    def run_scrapies():
+    def run_scrapies(self,):
 
         #Sky info
         meteo.run_scrapy(self.mode)
@@ -53,14 +53,14 @@ class Gamification():
             event_generator.main()
 
 
-    def run_preprocessor():
+    def run_preprocessor(self,):
         preprocessor = Preprocessor(self.mode, self.events_source)
         preprocessor.get_input_data()
         preprocessor.preprocess_data()
         preprocessor.save_output_data()
 
 
-    def run_light_intensity_recommender():
+    def run_light_intensity_recommender(self,):
 
         light_intensity_recommender = LightIntensityRecommender()
         light_intensity_recommender.get_input_data()
@@ -69,7 +69,7 @@ class Gamification():
         light_intensity_recommender.calculate_co2_consumption()
         light_intensity_recommender.save_output_data()
 
-    def run_visualizer():
+    def run_visualizer(self,):
         if self.plot_results:
             visualizer = Visualizer(self.mode)
             visualizer.get_input_data()
