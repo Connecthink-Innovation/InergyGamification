@@ -102,11 +102,11 @@ def run_scrapy(mode):
             dates.append(date_previous_i_str)
 
     
-    #PREPROD. CODE
+    #DEBUG. CODE
     if mode == "debug"
         dates = ["2023-06-26", "2023-06-25", "2023-06-24"]
-
     #---------------
+    
     page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
     df_output = scraper_previous_days(page,dates) 
 
@@ -126,6 +126,7 @@ def run_scrapy(mode):
         date_actual_str = "2023-06-26"
         date_next_str = "2023-06-27"
     #---------------
+
     dates.append(date_actual_str)
     dates.append(date_next_str)
 
