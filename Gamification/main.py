@@ -1,15 +1,15 @@
 #---------------------------------------------------------------------------------------------
 import os
 
-# Obtener la ruta al directorio del archivo actual
+# Get the path to the directory of the current file
 current_file_path = os.path.abspath(__file__)
 
-# Obtener la ruta al directorio raíz del proyecto
+# Get the path to the root directory of the project
 project_root = os.path.dirname(os.path.dirname(current_file_path))
 
-# Ahora puedes importar módulos desde las rutas calculadas
+# You can now import modules from calculated routes
 import sys
-sys.path.append(project_root)  # Agregar el directorio raíz al PYTHONPATH
+sys.path.append(project_root)  # Add the root directory to the PYTHONPATH
 #---------------------------------------------------------------------------------------------
 
 #skyinfo imports
@@ -52,19 +52,19 @@ class Gamification():
     def run_scrapies(self,):
 
         #Sky info
-        meteo.run_scrapy(self.mode)
-        moon_phases.run_spider(self.mode)
-        moonrise_moonset.run_spider(self.mode)
-        sunrise_sunset.run_spider(self.mode)
+        meteo.run_scrapy(self.mode, project_root)
+        moon_phases.run_spider(self.mode, project_root)
+        moonrise_moonset.run_spider(self.mode, project_root)
+        sunrise_sunset.run_spider(self.mode, project_root)
 
         #Light price
-        light_price.run_spider(self.mode)
+        light_price.run_spider(self.mode, project_root)
 
         #Events
         if self.events_source == "google":
-            google_events.run_spider()
+            google_events.run_spider(project_root)
         else:
-            event_generator.main()
+            event_generator.main(project_root)
 
 
     def run_preprocessor(self,):

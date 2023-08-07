@@ -24,16 +24,15 @@ import pandas as pd
 import re
 from datetime import datetime, timedelta
 
-PROJECT_DIR = os.path.dirname(os.path.realpath("__file__"))
 
 class GoogleEventsSpider(scrapy.Spider):
     name = "googleevents"
     allowed_domains = ['google.com']
     start_urls = ['http://google.com/']
 
-    def __init__(self, mode='debug', *args, **kwargs):
-
-        self.mode = mode
+    def __init__(self, project_root, *args, **kwargs):
+        
+        self.project_root = project_root
 
         self.query_keywords = ['events+Barcelona']
 
@@ -69,7 +68,7 @@ class GoogleEventsSpider(scrapy.Spider):
         chrome_options.add_argument("--window-size=1280,720")
         chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0: Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36')
         chrome_options.add_argument('--no_sandbox')
-        chrome_driver_path = os.path.join(PROJECT_DIR, "chromedriver.exe")
+        chrome_driver_path = os.path.join(self.project_root,"RSS_Spiders", "chromedriver.exe")
         driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=chrome_driver_path)
 
         yield SeleniumRequest(
@@ -327,12 +326,11 @@ class GoogleEventsSpider(scrapy.Spider):
 
     
     def save_locally(self):
-        if self.mode == 'debug':
-            path = os.path.join("data", "google_events.csv")
+        file_path = os.path.join(self.project_root, "RSS_Spiders", "data", "google_events.csv")
 
-            self.df.to_csv(path, index=False)
+        self.df.to_csv(file_path, index=False)
 
-def run_spider():
+def run_spider(project_root):
     os.chdir("./RSS_Spiders")
 
     settings = get_project_settings()
@@ -341,10 +339,10 @@ def run_spider():
     
     spider_name = 'googleevents'
 
-    process.crawl(spider_name, mode='debug')
+    process.crawl(spider_name, project_root)
 
     process.start()
     process.stop()
 
 
-#run_spider()
+#run_spider(project_root=r"c:\Users\abelb\Desktop\Gamification")

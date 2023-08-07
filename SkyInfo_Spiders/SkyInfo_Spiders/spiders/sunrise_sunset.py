@@ -12,12 +12,12 @@ class SunriseSunsetSpider(Spider):
     start_urls = ['http://www.timeanddate.com/']
 
 
-    def __init__(self, mode, *args, **kwargs):
+    def __init__(self, mode, project_root, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
         self.mode = mode
 
-        self.PROJECT_PATH = os.getcwd()
+        self.project_root = project_root
 
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
 
@@ -82,7 +82,7 @@ class SunriseSunsetSpider(Spider):
 
 
     def delete_csv(self,):
-        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
+        file_path = os.path.join(self.project_root, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
         file_exists = os.path.isfile(file_path)
         if file_exists:
             os.remove(file_path)
@@ -90,7 +90,7 @@ class SunriseSunsetSpider(Spider):
 
     def save_csv(self, days):
 
-        file_path = os.path.join(self.PROJECT_PATH, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
+        file_path = os.path.join(self.project_root, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
 
         file_exists = os.path.isfile(file_path) #Check if file exists
 
@@ -110,9 +110,9 @@ class SunriseSunsetSpider(Spider):
 
 
 # Debugger
-def run_spider():
+def run_spider(mode, project_root):
     process = CrawlerProcess(get_project_settings())
-    process.crawl(SunriseSunsetSpider, mode="debug")
+    process.crawl(SunriseSunsetSpider, mode, project_root)
     process.start()
 
-#run_spider()
+#run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification")

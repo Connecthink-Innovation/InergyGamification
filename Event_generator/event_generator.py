@@ -446,13 +446,16 @@ class EventGenerator():
 
 class EventExtractor:
 
-    def __init__(self, descriptions_events_today: List):
+    def __init__(self, descriptions_events_today: List, project_root: str):
         """
         Class constructor to initialize the EventExtractor.
 
         Attributes:
             descriptions_events_today (List): A list of descriptions of events for the current day.
+            project_root (Str): Project root
         """
+
+        self.project_root = project_root
 
         # Store the list of descriptions of events for the current day
         self.descriptions_events_today = descriptions_events_today
@@ -681,7 +684,7 @@ class EventExtractor:
                 print("\nERROR converting data into dictionaries:\n", event)
 
     def save_output(self,):
-        path = os.path.join("data", "fake_events.csv")
+        path = os.path.join(self.project_root, "Event_generator", "data", "fake_events.csv")
 
          # Abrir el archivo CSV en modo escritura
         with open(path, 'w', newline='') as archivo_csv:
@@ -698,8 +701,7 @@ class EventExtractor:
             for diccionario in self.out_list:
                 writer.writerow(diccionario)
 
-def main():
-    os.chdir("./Event_generator")
+def main(project_root):
 
     event_generator = EventGenerator()
     event_generator.generate_events()
@@ -709,7 +711,7 @@ def main():
     print("Events generated:\n ", descriptions_events_today)
 
     
-    event_extractor = EventExtractor(descriptions_events_today)
+    event_extractor = EventExtractor(descriptions_events_today, project_root)
     event_extractor.store_extractor_context()
     event_extractor.extract()
     event_extractor.append_geolocation()
@@ -720,7 +722,7 @@ def main():
     event_extractor.save_output()
   
 
-#main()
+#main(project_root=r"c:\Users\abelb\Desktop\Gamification")
 
 
 

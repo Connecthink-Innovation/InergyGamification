@@ -6,6 +6,7 @@ from functools import reduce
 import pandas as pd
 import time   
 from datetime import datetime, timedelta
+import os
 
 
 def render_page(url):
@@ -16,7 +17,7 @@ def render_page(url):
     driver.quit()
     return r
 
-def scraper_next_day(page, dates):
+def scraper_next_day(page, dates, project_root):
     output = pd.DataFrame()
     
     data = []
@@ -43,7 +44,8 @@ def scraper_next_day(page, dates):
             
 
     output = pd.DataFrame(data, columns=['Date', 'Hour', 'condition', 'temp_farenheit', 'feels_like_farenheit', 'precip_percent', 'precip_inches', 'cloud_cover_percent', 'dew_point_farenheit', 'humidity_percent', 'wind_vel', 'pressure_inches'])
-    output.to_csv("SkyInfo_Spiders/data/weather_next.csv")
+    file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_next.csv")
+    output.to_csv(file_path)
 
     print('Scraper done!')
 
@@ -51,7 +53,7 @@ def scraper_next_day(page, dates):
     return output
 
 
-def scraper_previous_days(page, dates):
+def scraper_previous_days(page, dates, project_root):
     output = pd.DataFrame()
     
     data = []
@@ -76,9 +78,10 @@ def scraper_previous_days(page, dates):
             
             data.append(data_row)
             
-
     output = pd.DataFrame(data, columns=["Date", "Hour", "temp_farenheit", "dew_point_farenheit", "humidity_percent", "wind", "wind_vel", "wind_gust", "pressure_inches", "precip_inches", "condition"])
-    output.to_csv("SkyInfo_Spiders/data/weather_previous.csv")
+
+    file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_previous.csv")
+    output.to_csv(file_path)
 
     print('Scraper done!')
 
@@ -88,7 +91,7 @@ def scraper_previous_days(page, dates):
 
 
 # Debugger
-def run_scrapy(mode):
+def run_scrapy(mode, project_root):
 
     dates = []
 
@@ -108,7 +111,7 @@ def run_scrapy(mode):
     #---------------
     
     page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
-    df_output = scraper_previous_days(page,dates) 
+    df_output = scraper_previous_days(page, dates, project_root) 
 
     dates = []
 
@@ -138,6 +141,6 @@ def run_scrapy(mode):
     #DEBUG. CODE
     if mode == "debug":
         page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
-        df_output2 = scraper_previous_days(page,dates)
+        df_output2 = scraper_previous_days(page, dates, project_root)
 
-#run_scrapy(mode="debug")
+#run_scrapy(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification" )

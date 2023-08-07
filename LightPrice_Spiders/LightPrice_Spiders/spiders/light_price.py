@@ -12,13 +12,13 @@ class LightPriceSpider(Spider):
     allowed_domains = ['https://tarifaluzhora.es']
     start_urls = ['https://tarifaluzhora.es']
 
-    def __init__(self, mode, *args, **kwargs):
+    def __init__(self, mode, project_root, *args, **kwargs):
         super().__init__(*args, **kwargs)
         
         #Mode debug or prod
         self.mode = mode 
 
-        self.PROJECT_PATH = os.getcwd()
+        self.project_root = project_root
 
         #Save actual date and next day date
         self.dates = []
@@ -76,14 +76,14 @@ class LightPriceSpider(Spider):
 
 
     def delete_csv(self,):
-        file_path = os.path.join(self.PROJECT_PATH, "LightPrice_Spiders", "data", "light_prices.csv")
+        file_path = os.path.join(self.project_root, "LightPrice_Spiders", "data", "light_prices.csv")
         file_exists = os.path.isfile(file_path)
         if file_exists:
             os.remove(file_path)
 
         
     def save_csv(self, light_prices, date):
-        file_path = os.path.join(self.PROJECT_PATH, "LightPrice_Spiders", "data", "light_prices.csv")
+        file_path = os.path.join(self.project_root, "LightPrice_Spiders", "data", "light_prices.csv")
 
         file_exists = os.path.isfile(file_path) #Check if file exists
         
@@ -100,7 +100,7 @@ class LightPriceSpider(Spider):
 
 def run_spider():
     process = CrawlerProcess(get_project_settings())
-    process.crawl(LightPriceSpider, mode="debug")
+    process.crawl(LightPriceSpider, mode="debug", project_root="c:\Users\abelb\Desktop\Gamification")
     process.start()
 
 #run_spider()
