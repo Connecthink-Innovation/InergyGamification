@@ -98,9 +98,9 @@ class LightPriceSpider(Spider):
             # Write all the rows
             writer.writerows(light_prices)
 
-def run_spider():
+def run_spider(mode, project_root):
     process = CrawlerProcess(get_project_settings())
     process.crawl(LightPriceSpider, mode="debug", project_root="c:\Users\abelb\Desktop\Gamification")
     process.start()
 
-#run_spider()
+#run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification")
