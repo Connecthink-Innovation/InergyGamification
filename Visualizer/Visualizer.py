@@ -11,7 +11,7 @@ class Visualizer:
     A class for visualizing real intensity vs recommended intensity data 
     and saving the plots as images.
     """
-    def __init__(self):
+    def __init__(self, mode):
         """
         Constructor to set up input and output data paths, 
         and initialize a list to store real intensity vs recommended plots.

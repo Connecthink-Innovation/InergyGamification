@@ -25,7 +25,7 @@ class LightPriceSpider(Spider):
         
         
         #PROD. CODE
-        if self.mode = "prod":
+        if self.mode == "prod":
             date = datetime.now()
             date_next = datetime.now() + timedelta(days=1)
             date_str = date.strftime("%Y-%m-%d")
@@ -33,7 +33,7 @@ class LightPriceSpider(Spider):
        
 
         #PREPROD. CODE
-        if self.mode = "debug":
+        if self.mode == "debug":
             date_str = "2023-06-26"
             date_next_str = "2023-06-27"
         #---------------
