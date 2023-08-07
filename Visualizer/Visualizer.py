@@ -217,7 +217,7 @@ def run_visualizer():
     """
     
     # Create an instance of the Visualizer class
-    visualizer = Visualizer()
+    visualizer = Visualizer(mode="debug")
 
     # Get input data from the Light_intensity_recommender output_data folder
     visualizer.get_input_data()
@@ -232,5 +232,5 @@ def run_visualizer():
     visualizer.save_output_data()
 
 # Call the function to run the visualizer
-run_visualizer()
+#run_visualizer()
 

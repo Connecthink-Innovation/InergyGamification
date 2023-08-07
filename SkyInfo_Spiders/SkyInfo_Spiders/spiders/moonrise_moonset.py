@@ -100,7 +100,7 @@ class MoonriseMoonsetSpider(Spider):
 # Debugger
 def run_spider():
     process = CrawlerProcess(get_project_settings())
-    process.crawl(MoonriseMoonsetSpider)
+    process.crawl(MoonriseMoonsetSpider, mode="debug")
     process.start()
 
 #run_spider()

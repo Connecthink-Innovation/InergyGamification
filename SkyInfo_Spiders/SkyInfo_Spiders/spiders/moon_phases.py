@@ -96,7 +96,7 @@ class MoonPhasesSpider(Spider):
 # Debugger
 def run_spider():
     process = CrawlerProcess(get_project_settings())
-    process.crawl(MoonPhasesSpider)
+    process.crawl(MoonPhasesSpider, mode="debug")
     process.start()
 
 #run_spider()

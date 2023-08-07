@@ -1136,7 +1136,7 @@ class Preprocessor:
 
 #DEBUG MAIN
 def main():
-    preprocessor = Preprocessor()
+    preprocessor = Preprocessor(mode="debug", events_source="google")
     preprocessor.get_input_data()
     preprocessor.preprocess_data()
     preprocessor.save_output_data()

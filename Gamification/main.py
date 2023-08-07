@@ -1,3 +1,17 @@
+#---------------------------------------------------------------------------------------------
+import os
+
+# Obtener la ruta al directorio del archivo actual
+current_file_path = os.path.abspath(__file__)
+
+# Obtener la ruta al directorio raíz del proyecto
+project_root = os.path.dirname(os.path.dirname(current_file_path))
+
+# Ahora puedes importar módulos desde las rutas calculadas
+import sys
+sys.path.append(project_root)  # Agregar el directorio raíz al PYTHONPATH
+#---------------------------------------------------------------------------------------------
+
 #skyinfo imports
 from SkyInfo_Spiders.SkyInfo_Spiders.spiders import meteo, moon_phases, moonrise_moonset, sunrise_sunset
 

@@ -100,7 +100,7 @@ class LightPriceSpider(Spider):
 
 def run_spider():
     process = CrawlerProcess(get_project_settings())
-    process.crawl(LightPriceSpider)
+    process.crawl(LightPriceSpider, mode="debug")
     process.start()
 
 #run_spider()

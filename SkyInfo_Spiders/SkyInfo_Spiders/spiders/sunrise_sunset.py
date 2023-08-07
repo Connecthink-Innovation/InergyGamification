@@ -112,7 +112,7 @@ class SunriseSunsetSpider(Spider):
 # Debugger
 def run_spider():
     process = CrawlerProcess(get_project_settings())
-    process.crawl(SunriseSunsetSpider)
+    process.crawl(SunriseSunsetSpider, mode="debug")
     process.start()
 
 #run_spider()
