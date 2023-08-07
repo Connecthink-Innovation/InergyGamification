@@ -8,6 +8,10 @@ import numpy as np
 import random
 from scipy.spatial import cKDTree
 
+from deep_translator import GoogleTranslator
+from langdetect import detect
+import pycountry
+
 
 class Preprocessor:
     def __init__(self, events_source):
@@ -109,7 +113,7 @@ class Preprocessor:
             events_filename = "fake_events.csv"
 
         for zone in self.zones:
-            self.preprocess_google_events_data(events_filename, zone=zone, sampling=random.choice(range(1,5)))
+            self.preprocess_events_data(events_filename, zone=zone, sampling=random.choice(range(1,5)))
 
         # Preprocess weather data for the previous day
         self.preprocess_weather_previous_data("weather_previous.csv")
@@ -183,7 +187,7 @@ class Preprocessor:
         grouped_df.to_csv(dst_file, index=False)          
 
 
-    def  preprocess_google_events_data(self, file_name, zone, sampling=None):
+    def  preprocess_events_data(self, file_name, zone, sampling=None):
         """
         Preprocesses Google events data from a CSV file.
         
@@ -219,6 +223,25 @@ class Preprocessor:
 
             else:
                 df = pd.DataFrame(columns=df.columns)
+
+        #Translate to english
+
+        # > Detect the original events language
+        first_description = df.loc[0, 'Description']
+        detected_lang_code  = detect(first_description)
+        detected_lang_name = pycountry.languages.get(alpha_2=detected_lang_code).name
+
+        print(f"Translating events from {detected_lang_name} to English...")
+
+        # > Translate only if it is not in English
+        if detected_lang_code != 'en':
+            # > Initialize the translator
+            translator = GoogleTranslator(source='auto', target='en')
+
+            # > Apply translation with retries to each column
+            df['Title'] = df['Title'].apply(lambda x: translator.translate(x))
+            df['Location'] = df['Location'].apply(lambda x: translator.translate(x))
+            df['Description'] = df['Description'].apply(lambda x: translator.translate(x))
 
         #PROD. CODE
 
