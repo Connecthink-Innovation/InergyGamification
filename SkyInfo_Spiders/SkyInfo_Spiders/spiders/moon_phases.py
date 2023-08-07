@@ -11,21 +11,24 @@ class MoonPhasesSpider(Spider):
     allowed_domains = ['www.timeanddate.com']
     start_urls = ['http://www.timeanddate.com/moon/phases']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, mode, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+        self.mode = mode
+        
         self.PROJECT_PATH = os.getcwd()
 
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
-        """
-        PROD. CODE
+        
+        #PROD. CODE
+        if self.mode = "prod":
+            date = datetime.now()
+            year = str(date.year)
+        
 
-        date = datetime.now()
-        year = str(date.year)
-        """
-
-        #PREPROD. CODE
-        year = "2023"
+        #DEBUG. CODE
+        if self.mode = "debug":
+            year = "2023"
         #---------------
 
         self.years = [year]  # Specify the years to search

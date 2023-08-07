@@ -16,6 +16,9 @@ class Visualizer:
         Constructor to set up input and output data paths, 
         and initialize a list to store real intensity vs recommended plots.
         """
+        
+        #Mode debug or prod
+        self.mode = mode 
 
         # Set up input and output data paths
         self.input_data_path = os.path.join("Visualizer", "input_data")
@@ -96,8 +99,13 @@ class Visualizer:
                 df['datetime'] = df['Date'] + ' ' + df['Hour']
 
                 # Get today's and tomorrow's date in the format 'YYYY-MM-DD'
-                today = datetime.now().strftime('%Y-%m-%d')
-                tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+                if self.mode == "prod":
+                    today = datetime.now().strftime('%Y-%m-%d')
+                    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
+
+                if self.mode == "debug":
+                    today = "2023-06-26"
+                    tomorrow = "2023-06-27"
 
                 # Set plot style
                 sns.set(style='whitegrid')

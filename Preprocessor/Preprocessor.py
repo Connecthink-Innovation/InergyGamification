@@ -14,7 +14,10 @@ import pycountry
 
 
 class Preprocessor:
-    def __init__(self, events_source):
+    def __init__(self, mode, events_source):
+        #Mode debug or prod
+        self.mode = mode
+
         # Indicates the source of the events to be used
         self.events_source = events_source
 
@@ -31,6 +34,7 @@ class Preprocessor:
 
         # Initialize a list to store zones (not shown how it is used here)
         self.zones = []
+
 
     #GET INPUT DATA
     def get_input_data(self,):
@@ -244,19 +248,20 @@ class Preprocessor:
             df['Description'] = df['Description'].apply(lambda x: translator.translate(x))
 
         #PROD. CODE
-
-        # Get the current date and time
-        #current_date = datetime.now()
-        #current_year = current_date.year
-        #current_month = current_date.month
-        #current_day = current_date.day
+        if self.mode = "prod":
+            # Get the current date and time
+            current_date = datetime.now()
+            current_year = current_date.year
+            current_month = current_date.month
+            current_day = current_date.day
         
 
-        #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=26)
-        current_year = current_date.year
-        current_month = current_date.month
-        current_day = current_date.day
+        #DEBUG. CODE
+        if self.mode = "debug":
+            current_date = datetime(year=2023, month=6, day=26)
+            current_year = current_date.year
+            current_month = current_date.month
+            current_day = current_date.day
         #---------------
 
         new_data = []
@@ -404,14 +409,15 @@ class Preprocessor:
         #Select only act and next day
 
         #PROD. CODE
-
-        #current_date = datetime.now().date()
-        #next_date = current_date + timedelta(days=1)
+        if self.mode = "prod":
+            current_date = datetime.now().date()
+            next_date = current_date + timedelta(days=1)
         
 
-        #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=26)
-        next_date = datetime(year=2023, month=6, day=27)
+        #DEBUG. CODE
+        if self.mode = "debug":
+            current_date = datetime(year=2023, month=6, day=26)
+            next_date = datetime(year=2023, month=6, day=27)
         #---------------
 
         # Filter RSS data to current and next day
@@ -739,14 +745,15 @@ class Preprocessor:
         # Select only the moon phases for the current and next day (specified in PROD/PREPROD CODE)
 
         #PROD. CODE
+        if self.mode = "prod":
+            current_date = datetime.now().date()
+            next_date = current_date + timedelta(days=1)
 
-        #current_date = datetime.now().date()
-        #next_date = current_date + timedelta(days=1)
 
-
-        #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=26)
-        next_date = datetime(year=2023, month=6, day=27)
+        #DEBUG. CODE
+        if self.mode = "debug":
+            current_date = datetime(year=2023, month=6, day=26)
+            next_date = datetime(year=2023, month=6, day=27)
         #---------------
 
         # Filter moon phase data to current and next day
@@ -807,14 +814,15 @@ class Preprocessor:
         # Select only the moonrise and moonset data for the current and next day (specified in PROD/PREPROD CODE)
     
         #PROD. CODE
-
-        #current_date = datetime.now().date()
-        #next_date = current_date + timedelta(days=1)
+        if self.mode = "prod":
+            current_date = datetime.now().date()
+            next_date = current_date + timedelta(days=1)
  
 
-        #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=26)
-        next_date = datetime(year=2023, month=6, day=27)
+        #DEBUG. CODE
+        if self.mode = "debug":
+            current_date = datetime(year=2023, month=6, day=26)
+            next_date = datetime(year=2023, month=6, day=27)
         #---------------
         
         # Filter moon data to current and next day
@@ -867,14 +875,15 @@ class Preprocessor:
         # Select only the sunrise and sunset data for the current and next day (specified in PROD/PREPROD CODE)
         
         #PROD. CODE
-
-        #current_date = datetime.now().date()
-        #next_date = current_date + timedelta(days=1)
+        if self.mode = "prod":
+            current_date = datetime.now().date()
+            next_date = current_date + timedelta(days=1)
     
 
-        #PREPROD. CODE
-        current_date = datetime(year=2023, month=6, day=26)
-        next_date = datetime(year=2023, month=6, day=27)
+        #DEBUG. CODE
+        if self.mode = "debug":
+            current_date = datetime(year=2023, month=6, day=26)
+            next_date = datetime(year=2023, month=6, day=27)
         #---------------
         
         # Filter sun data to current and next day

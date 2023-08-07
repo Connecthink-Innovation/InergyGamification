@@ -12,8 +12,11 @@ class LightPriceSpider(Spider):
     allowed_domains = ['https://tarifaluzhora.es']
     start_urls = ['https://tarifaluzhora.es']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, mode, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        
+        #Mode debug or prod
+        self.mode = mode 
 
         self.PROJECT_PATH = os.getcwd()
 
@@ -22,16 +25,17 @@ class LightPriceSpider(Spider):
         
         
         #PROD. CODE
-
-        date = datetime.now()
-        date_next = datetime.now() + timedelta(days=1)
-        date_str = date.strftime("%Y-%m-%d")
-        date_next_str = date_next.strftime("%Y-%m-%d")
+        if self.mode = "prod":
+            date = datetime.now()
+            date_next = datetime.now() + timedelta(days=1)
+            date_str = date.strftime("%Y-%m-%d")
+            date_next_str = date_next.strftime("%Y-%m-%d")
        
 
         #PREPROD. CODE
-        #date_str = "2023-06-14"
-        #date_next_str = "2023-06-15"
+        if self.mode = "debug":
+            date_str = "2023-06-26"
+            date_next_str = "2023-06-27"
         #---------------
         
         self.dates.append(date_str)

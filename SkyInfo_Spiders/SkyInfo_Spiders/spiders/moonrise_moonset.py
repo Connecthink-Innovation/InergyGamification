@@ -11,23 +11,27 @@ class MoonriseMoonsetSpider(Spider):
     allowed_domains = ['www.timeanddate.com']
     start_urls = ['http://www.timeanddate.com/']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, mode, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.mode = mode
 
         self.PROJECT_PATH = os.getcwd()
 
         self.search_cities = [("spain", "barcelona")] # Specify the search cities
-        """
+        
         #PROD. CODE
-        date = datetime.now()
-        year = str(date.year)
-        month = str(date.month)
-        """
+        if self.mode = "prod":
+            date = datetime.now()
+            year = str(date.year)
+            month = str(date.month)
+        
 
         #PREPROD. CODE
-        year = "2023"
-        month = "6"
+        if self.mode = "debug":
+            year = "2023"
+            month = "6"
         #---------------
+
         self.years_months = {year:[month]}  # Specify the years  and months to search
 
         self.allowed_domains = ['www.timeanddate.com']
