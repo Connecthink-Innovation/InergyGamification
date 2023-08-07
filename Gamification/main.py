@@ -38,7 +38,7 @@ class Gamification():
     def run_scrapies():
 
         #Sky info
-        meteo.run_scrapy()
+        meteo.run_scrapy(self.mode)
         moon_phases.run_spider(self.mode)
         moonrise_moonset.run_spider(self.mode)
         sunrise_sunset.run_spider(self.mode)

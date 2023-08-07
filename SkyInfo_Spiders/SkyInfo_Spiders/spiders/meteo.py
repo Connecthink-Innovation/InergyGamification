@@ -88,22 +88,23 @@ def scraper_previous_days(page, dates):
 
 
 # Debugger
-def run_scrapy():
+def run_scrapy(mode):
 
     dates = []
 
    
     #PROD. CODE
-
-    date = datetime.now()
-    for i in range(2, -1, -1):
-        date_previous_i = date - timedelta(days=i)
-        date_previous_i_str = date_previous_i.strftime("%Y-%m-%d")
-        dates.append(date_previous_i_str)
+    if mode == "prod":
+        date = datetime.now()
+        for i in range(2, -1, -1):
+            date_previous_i = date - timedelta(days=i)
+            date_previous_i_str = date_previous_i.strftime("%Y-%m-%d")
+            dates.append(date_previous_i_str)
 
     
     #PREPROD. CODE
-    #dates = ["2023-06-14", "2023-06-13", "2023-06-12"]
+    if mode == "debug"
+        dates = ["2023-06-26", "2023-06-25", "2023-06-24"]
 
     #---------------
     page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
@@ -113,24 +114,29 @@ def run_scrapy():
 
     
     #PROD. CODE
-
-    date_actual = datetime.now()
-    date_actual_str = date_actual.strftime("%Y-%m-%d")
-    date_next = datetime.now() + timedelta(days=1)
-    date_next_str = date_next.strftime("%Y-%m-%d")
+    if mode == "prod":
+        date_actual = datetime.now()
+        date_actual_str = date_actual.strftime("%Y-%m-%d")
+        date_next = datetime.now() + timedelta(days=1)
+        date_next_str = date_next.strftime("%Y-%m-%d")
 
     
-    #PREPROD. CODE
-    #date_actual_str = "2023-06-14"
-    #date_next_str = "2023-06-15"
+    #DEBUG. CODE
+    if mode == "debug"
+        date_actual_str = "2023-06-26"
+        date_next_str = "2023-06-27"
     #---------------
     dates.append(date_actual_str)
     dates.append(date_next_str)
 
+    #PROD. CODE
+    if mode == "prod":
+        page = 'https://www.wunderground.com/hourly/es/canyelles/ICANYE10/date/'
+        df_output2 = scraper_next_day(page,dates)
 
-    page = 'https://www.wunderground.com/hourly/es/canyelles/ICANYE10/date/'
-    df_output2 = scraper_next_day(page,dates)
+    #DEBUG. CODE
+    if mode == "debug":
+        page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
+        df_output2 = scraper_previous_days(page,dates)
 
-
-
-#run_scrapy()
+#run_scrapy(mode="debug")
