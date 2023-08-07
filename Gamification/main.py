@@ -77,7 +77,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--events_source", help="Indicates the way to obtain the events (google or generator)", type=str, default="google")
     parser.add_argument("--recommender_params", help="List of the features to use in recommender", nargs='+', default=["light price", "moon", "snow", "rain", "cloud"])
-    parser.add_argument("--plot_results", help="A boolean parameter", action='store_true')
+    parser.add_argument("--plot_results", help="A boolean parameter", action='store_true', default=True) # Plot results by default, if you don't want to plot results use --no_plot_results
 
 
     args = parser.parse_args()
