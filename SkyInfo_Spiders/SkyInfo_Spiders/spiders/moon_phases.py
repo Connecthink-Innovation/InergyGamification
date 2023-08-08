@@ -4,6 +4,8 @@ from scrapy.utils.project import get_project_settings
 import os
 import csv
 from datetime import datetime
+import time
+
 
 
 class MoonPhasesSpider(Spider):
@@ -98,5 +100,6 @@ def run_spider(mode, project_root):
     process = CrawlerProcess(get_project_settings())
     process.crawl(MoonPhasesSpider, mode, project_root)
     process.start()
+
 
 #run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification")

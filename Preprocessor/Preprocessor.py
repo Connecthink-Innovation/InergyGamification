@@ -223,7 +223,11 @@ class Preprocessor:
         # If a sampling has been indicated, we reduce the number of events to the indicated sampling
         if sampling:
             if sampling > 0 and len(df) > 0:
-                df = df.sample(n=sampling)
+                if sampling < len(df):
+                    df = df.sample(n=sampling)
+                    df = df.reset_index(drop=True)
+                else:
+                    df = df.copy()
 
             else:
                 df = pd.DataFrame(columns=df.columns)
@@ -231,21 +235,22 @@ class Preprocessor:
         #Translate to english
 
         # > Detect the original events language
-        first_description = df.loc[0, 'Description']
-        detected_lang_code  = detect(first_description)
-        detected_lang_name = pycountry.languages.get(alpha_2=detected_lang_code).name
+        if len(df) > 0:
+            first_description = df.loc[0, 'Title']
+            detected_lang_code  = detect(first_description)
+            detected_lang_name = pycountry.languages.get(alpha_2=detected_lang_code).name
 
-        print(f"Translating events from {detected_lang_name} to English...")
+            # > Translate only if it is not in English
+            if detected_lang_code != 'en':
+                print(f"Translating events from {detected_lang_name} to English...")
 
-        # > Translate only if it is not in English
-        if detected_lang_code != 'en':
-            # > Initialize the translator
-            translator = GoogleTranslator(source='auto', target='en')
+                # > Initialize the translator
+                translator = GoogleTranslator(source='auto', target='en')
 
-            # > Apply translation with retries to each column
-            df['Title'] = df['Title'].apply(lambda x: translator.translate(x))
-            df['Location'] = df['Location'].apply(lambda x: translator.translate(x))
-            df['Description'] = df['Description'].apply(lambda x: translator.translate(x))
+                # > Apply translation with retries to each column
+                df['Title'] = df['Title'].apply(lambda x: translator.translate(x))
+                df['Location'] = df['Location'].apply(lambda x: translator.translate(x))
+                df['Description'] = df['Description'].apply(lambda x: translator.translate(x))
 
         #PROD. CODE
         if self.mode == "prod":
@@ -510,43 +515,76 @@ class Preprocessor:
         csv_file = os.path.join(self.input_data_path, file_name)
         df = pd.read_csv(csv_file)
 
-        #Process temperature columns -> F to C
-        df['temp_farenheit'] = df['temp_farenheit'].str.split().str[0].astype(float)
-        df["temp_celsius"] = df["temp_farenheit"].apply(self.farenheit_to_celsius)
+        if self.mode == "prod":
+            #Process temperature columns -> F to C
+            df['temp_farenheit'] = df['temp_farenheit'].str.split().str[0].astype(float)
+            df["temp_celsius"] = df["temp_farenheit"].apply(self.farenheit_to_celsius)
 
-        #Process % columns
-        df['precip_percent'] = df['precip_percent'].str.split().str[0].astype(float)
-        df['cloud_cover_percent'] = df['cloud_cover_percent'].str.split().str[0].astype(float)
-        df['humidity_percent'] = df['humidity_percent'].str.split().str[0].astype(float)
+            #Process % columns
+            df['precip_percent'] = df['precip_percent'].str.split().str[0].astype(float)
+            df['cloud_cover_percent'] = df['cloud_cover_percent'].str.split().str[0].astype(float)
+            df['humidity_percent'] = df['humidity_percent'].str.split().str[0].astype(float)
 
-        #Process quantity columns
-        df["precip_inches"] = df['precip_inches'].str.split().str[0].astype(float)
-        df["precip_mm"] = df["precip_inches"].apply(self.inches_to_mm)
+            #Process quantity columns
+            df["precip_inches"] = df['precip_inches'].str.split().str[0].astype(float)
+            df["precip_mm"] = df["precip_inches"].apply(self.inches_to_mm)
 
-        df["pressure_inches"] = df['pressure_inches'].str.split().str[0].astype(float)
-        df["pressure_hPa"] = df['pressure_inches'].apply(self.inches_to_hPa)
+            df["pressure_inches"] = df['pressure_inches'].str.split().str[0].astype(float)
+            df["pressure_hPa"] = df['pressure_inches'].apply(self.inches_to_hPa)
 
-        #Process str columns
-        df["condition"] = df["condition"].str.lower()
+            #Process str columns
+            df["condition"] = df["condition"].str.lower()
 
-        #Process date components
-        df["Date"] = pd.to_datetime(df["Date"])
-        df["Year"] = df["Date"].dt.year
-        df["Month"] = df["Date"].dt.month
-        df["Day"] = df["Date"].dt.day
+            #Process date components
+            df["Date"] = pd.to_datetime(df["Date"])
+            df["Year"] = df["Date"].dt.year
+            df["Month"] = df["Date"].dt.month
+            df["Day"] = df["Date"].dt.day
 
-        df["Hour"] = pd.to_datetime(df["Hour"], format="%I:%M %p").dt.time
+            df["Hour"] = pd.to_datetime(df["Hour"], format="%I:%M %p").dt.time
 
-        #Delete unrelated variables
-        df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "feels_like_farenheit", "dew_point_farenheit", "wind_vel", "Date", "precip_inches", "pressure_inches"], axis=1)
+            #Delete unrelated variables
+            df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "feels_like_farenheit", "dew_point_farenheit", "wind_vel", "Date", "precip_inches", "pressure_inches"], axis=1)
 
-        #Sort values by date
-        df = df.sort_values(by=["Year", "Month", "Day"])
+            #Sort values by date
+            df = df.sort_values(by=["Year", "Month", "Day"])
+        
+        else:
+            # Process temperature columns -> F to C
+            df['temp_farenheit'] = df['temp_farenheit'].str.split().str[0].astype(float)
+            df["temp_celsius"] = df["temp_farenheit"].apply(self.farenheit_to_celsius)
 
-        # Save processed data to a new CSV file named "weather_next_data_processed.csv"
+            #Process % columns
+            df['humidity_percent'] = df['humidity_percent'].str.split().str[0].astype(float)
+
+            #Process quantity columns
+            df["precip_inches"] = df['precip_inches'].str.split().str[0].astype(float)
+            df["precip_mm"] = df["precip_inches"].apply(self.inches_to_mm)
+
+            df["pressure_inches"] = df['pressure_inches'].str.split().str[0].astype(float)
+            df["pressure_hPa"] = df['pressure_inches'].apply(self.inches_to_hPa)
+
+            #Process str columns
+            df["condition"] = df["condition"].str.lower()
+
+            #Process date components
+            df["Date"] = pd.to_datetime(df["Date"])
+            df["Year"] = df["Date"].dt.year
+            df["Month"] = df["Date"].dt.month
+            df["Day"] = df["Date"].dt.day
+
+            df["Hour"] = pd.to_datetime(df["Hour"], format="%I:%M %p").dt.time
+
+            #Delete unrelated variables
+            df = df.drop(columns=["Unnamed: 0", "temp_farenheit", "dew_point_farenheit", "wind", "wind_vel", "wind_gust", "Date", "precip_inches", "pressure_inches"], axis=1)
+
+            #Sort values by date
+            df = df.sort_values(by=["Year", "Month", "Day"])
+
+        # Save processed data to a new CSV file named "weather_previous_data_processed.csv"
         file_name = "weather_next_data_processed.csv"
         dst_file = os.path.join(self.temp_data_path, file_name)
-        df.to_csv(dst_file, index=False)    
+        df.to_csv(dst_file, index=False)  
 
     def farenheit_to_celsius(self, degrees_farenheit: float) -> float:
         """

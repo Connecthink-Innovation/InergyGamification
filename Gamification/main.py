@@ -22,6 +22,9 @@ from LightPrice_Spiders.LightPrice_Spiders.spiders import light_price
 from RSS_Spiders.RSS_Spiders.spiders import google_events
 from Event_generator import event_generator
 
+#node classifier imports
+from Node_classifier import node_classifier
+
 #preprocessor imports
 from Preprocessor.Preprocessor import Preprocessor
 
@@ -33,6 +36,7 @@ from Visualizer.Visualizer import Visualizer
 
 #utils
 import argparse 
+import multiprocessing
 
 class Gamification():
     def __init__(self, mode, events_source, recommender_params, plots_results):
@@ -51,20 +55,27 @@ class Gamification():
 
     def run_scrapies(self,):
 
-        #Sky info
-        meteo.run_scrapy(self.mode, project_root)
-        moon_phases.run_spider(self.mode, project_root)
-        moonrise_moonset.run_spider(self.mode, project_root)
-        sunrise_sunset.run_spider(self.mode, project_root)
+        processes = []
 
-        #Light price
-        light_price.run_spider(self.mode, project_root)
+        processes.append(multiprocessing.Process(target=meteo.run_scrapy, args=(self.mode, project_root)))
+        processes.append(multiprocessing.Process(target=moon_phases.run_spider, args=(self.mode, project_root)))
+        processes.append(multiprocessing.Process(target=moonrise_moonset.run_spider, args=(self.mode, project_root)))
+        processes.append(multiprocessing.Process(target=sunrise_sunset.run_spider, args=(self.mode, project_root)))
+        processes.append(multiprocessing.Process(target=light_price.run_spider, args=(self.mode, project_root)))
 
-        #Events
         if self.events_source == "google":
-            google_events.run_spider(project_root)
+            processes.append(multiprocessing.Process(target=google_events.run_spider, args=(project_root,)))
         else:
-            event_generator.main(project_root)
+            processes.append(multiprocessing.Process(target=event_generator.main, args=(project_root,)))
+
+        for process in processes:
+            process.start()
+
+        for process in processes:
+            process.join()
+
+    def run_node_classifier(self,):
+        node_classifier.main()
 
 
     def run_preprocessor(self,):
@@ -93,7 +104,8 @@ class Gamification():
 
 def main(mode, events_source, recommender_params, plot_results):
     gamification = Gamification(mode, events_source, recommender_params, plot_results)
-    gamification.run_scrapies()
+    #gamification.run_scrapies()
+    #gamification.run_node_classifier()
     gamification.run_preprocessor()
     gamification.run_light_intensity_recommender()
     gamification.run_visualizer()

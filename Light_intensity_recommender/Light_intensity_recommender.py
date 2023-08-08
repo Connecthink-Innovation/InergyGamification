@@ -322,9 +322,12 @@ class LightIntensityRecommender:
         Returns:
             float: The calculated cloud score.
         """
-
-        score = row["cloud_cover_percent"] * 0.01 #Calculate cloud score
-                
+        try:
+            score = row["cloud_cover_percent"] * 0.01 #Calculate cloud score
+        
+        except:
+            score = 0
+            
         return score
     
 

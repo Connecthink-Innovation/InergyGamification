@@ -100,7 +100,7 @@ class LightPriceSpider(Spider):
 
 def run_spider(mode, project_root):
     process = CrawlerProcess(get_project_settings())
-    process.crawl(LightPriceSpider, mode="debug", project_root="c:\Users\abelb\Desktop\Gamification")
+    process.crawl(LightPriceSpider, mode, project_root)
     process.start()
 
 #run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification")

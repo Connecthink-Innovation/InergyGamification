@@ -53,7 +53,7 @@ def scraper_next_day(page, dates, project_root):
     return output
 
 
-def scraper_previous_days(page, dates, project_root):
+def scraper_previous_days(page, dates, project_root, fake=False):
     output = pd.DataFrame()
     
     data = []
@@ -80,7 +80,11 @@ def scraper_previous_days(page, dates, project_root):
             
     output = pd.DataFrame(data, columns=["Date", "Hour", "temp_farenheit", "dew_point_farenheit", "humidity_percent", "wind", "wind_vel", "wind_gust", "pressure_inches", "precip_inches", "condition"])
 
-    file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_previous.csv")
+    if not fake:
+        file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_previous.csv")
+    else:
+        file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_next.csv")
+
     output.to_csv(file_path)
 
     print('Scraper done!')
@@ -140,7 +144,11 @@ def run_scrapy(mode, project_root):
 
     #DEBUG. CODE
     if mode == "debug":
+        fake = True
         page = 'https://www.wunderground.com/history/daily/es/canyelles/ICANYE10/date/'
-        df_output2 = scraper_previous_days(page, dates, project_root)
+        df_output2 = scraper_previous_days(page, dates, project_root, fake)
+
+    time.sleep(5)
+
 
 #run_scrapy(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification" )

@@ -156,7 +156,7 @@ class GoogleEventsSpider(scrapy.Spider):
             
             if len(listings) == 0:
                 last_event = True
-                print("\n\n\n\nNO MORE OFFERS\n\n\n\n")
+                print("\n\n\n\nNO MORE EVENTS\n\n\n\n")
                 continue
             
             sleep(random.uniform(1,2))
@@ -165,7 +165,7 @@ class GoogleEventsSpider(scrapy.Spider):
                 event_data = copy.deepcopy(self.event_constructor)
 
                 try:
-                    self.scroll_into_view_offers(driver, listing)
+                    self.scroll_into_view_events(driver, listing)
                     listing.click()
                 except:
                     break
@@ -306,7 +306,7 @@ class GoogleEventsSpider(scrapy.Spider):
         return event_descrip
 
 
-    def scroll_into_view_offers(self, driver, element):
+    def scroll_into_view_events(self, driver, element):
         driver.execute_script("arguments[0].scrollIntoView(true);", element)
         sleep(random.uniform(1, 2))
 
@@ -331,18 +331,9 @@ class GoogleEventsSpider(scrapy.Spider):
         self.df.to_csv(file_path, index=False)
 
 def run_spider(project_root):
-    os.chdir("./RSS_Spiders")
 
-    settings = get_project_settings()
-
-    process = CrawlerProcess(settings)
-    
-    spider_name = 'googleevents'
-
-    process.crawl(spider_name, project_root)
-
+    process = CrawlerProcess(get_project_settings())
+    process.crawl(GoogleEventsSpider, project_root)
     process.start()
-    process.stop()
-
 
 #run_spider(project_root=r"c:\Users\abelb\Desktop\Gamification")
