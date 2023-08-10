@@ -1,3 +1,16 @@
+import logging
+import urllib3
+from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
+
+# Desactivar los mensajes de registro de Selenium, scrapy y urllib3
+logging.getLogger('selenium').setLevel(logging.WARNING)
+selenium_logger.setLevel(logging.WARNING)
+logging.getLogger('scrapy').setLevel(logging.WARNING)
+logging.getLogger('scrapy').propagate = False
+urllib3_logger = logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('filelock').setLevel(logging.ERROR)
+
+
 from scrapy import Spider, signals, Request
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings

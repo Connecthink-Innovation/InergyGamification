@@ -1,3 +1,13 @@
+import logging
+import urllib3
+from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
+
+# Desactivar los mensajes de registro de Selenium, scrapy y urllib3
+selenium_logger.setLevel(logging.WARNING)
+logging.getLogger('scrapy').setLevel(logging.WARNING)
+urllib3_logger = logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('filelock').setLevel(logging.ERROR)
+
 #---------------------------------------------------------------------------------------------
 import os
 
@@ -57,17 +67,17 @@ class Gamification():
 
         processes = []
 
-        processes.append(multiprocessing.Process(target=meteo.run_scrapy, args=(self.mode, project_root)))
-        processes.append(multiprocessing.Process(target=moon_phases.run_spider, args=(self.mode, project_root)))
-        processes.append(multiprocessing.Process(target=moonrise_moonset.run_spider, args=(self.mode, project_root)))
-        processes.append(multiprocessing.Process(target=sunrise_sunset.run_spider, args=(self.mode, project_root)))
-        processes.append(multiprocessing.Process(target=light_price.run_spider, args=(self.mode, project_root)))
-
+        #processes.append(multiprocessing.Process(target=meteo.run_scrapy, args=(self.mode, project_root)))
+        #processes.append(multiprocessing.Process(target=moon_phases.run_spider, args=(self.mode, project_root)))
+        #processes.append(multiprocessing.Process(target=moonrise_moonset.run_spider, args=(self.mode, project_root)))
+        #processes.append(multiprocessing.Process(target=sunrise_sunset.run_spider, args=(self.mode, project_root)))
+        #processes.append(multiprocessing.Process(target=light_price.run_spider, args=(self.mode, project_root)))
+        
         if self.events_source == "google":
             processes.append(multiprocessing.Process(target=google_events.run_spider, args=(project_root,)))
         else:
             processes.append(multiprocessing.Process(target=event_generator.main, args=(project_root,)))
-
+        
         for process in processes:
             process.start()
 
@@ -104,11 +114,11 @@ class Gamification():
 
 def main(mode, events_source, recommender_params, plot_results):
     gamification = Gamification(mode, events_source, recommender_params, plot_results)
-    #gamification.run_scrapies()
+    gamification.run_scrapies()
     #gamification.run_node_classifier()
-    gamification.run_preprocessor()
-    gamification.run_light_intensity_recommender()
-    gamification.run_visualizer()
+    #gamification.run_preprocessor()
+    #gamification.run_light_intensity_recommender()
+    #gamification.run_visualizer()
 
 if __name__ == "__main__":
     # Setting the command line argument to customize the recommender    

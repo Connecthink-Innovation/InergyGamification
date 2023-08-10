@@ -12,6 +12,8 @@ BOT_NAME = 'LightPrice_Spiders'
 SPIDER_MODULES = ['LightPrice_Spiders.spiders']
 NEWSPIDER_MODULE = 'LightPrice_Spiders.spiders'
 
+LOG_ENABLED = False
+LOG_LEVEL = 'ERROR'  # Puedes ajustar el nivel de registro según tus preferencias
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
 #USER_AGENT = 'LightPrice_Spiders (+http://www.yourdomain.com)'

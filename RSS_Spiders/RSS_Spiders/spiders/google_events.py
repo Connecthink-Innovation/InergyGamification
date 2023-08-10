@@ -1,3 +1,16 @@
+import logging
+import urllib3
+from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
+
+# Desactivar los mensajes de registro de Selenium, scrapy y urllib3
+logging.getLogger('selenium').setLevel(logging.WARNING)
+selenium_logger.setLevel(logging.WARNING)
+logging.getLogger('scrapy').setLevel(logging.WARNING)
+logging.getLogger('scrapy').propagate = False
+urllib3_logger = logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('filelock').setLevel(logging.ERROR)
+
+
 #scrapy
 import scrapy
 
@@ -68,6 +81,7 @@ class GoogleEventsSpider(scrapy.Spider):
         chrome_options.add_argument("--window-size=1280,720")
         chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0: Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36')
         chrome_options.add_argument('--no_sandbox')
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
         chrome_driver_path = os.path.join(self.project_root,"RSS_Spiders", "chromedriver.exe")
         driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=chrome_driver_path)
 
@@ -197,7 +211,7 @@ class GoogleEventsSpider(scrapy.Spider):
             event_title = event_title_element.text.strip()
 
         except Exception as e:
-            print(e)
+            pass
 
         sleep(random.uniform(0.5, 1))
         return event_title
@@ -226,7 +240,7 @@ class GoogleEventsSpider(scrapy.Spider):
 
 
         except Exception as e:
-            print(e)
+            pass
 
         sleep(random.uniform(0.5, 1))
         return event_schedule
@@ -272,7 +286,7 @@ class GoogleEventsSpider(scrapy.Spider):
             event_location = {"Location":event_location, "lat":None, "lon":None}
 
         except Exception as e:
-            print(e)
+            pass
 
         sleep(random.uniform(0.5, 1))
 
@@ -318,7 +332,7 @@ class GoogleEventsSpider(scrapy.Spider):
             self.df = pd.concat([self.df, row_df])
         
         except Exception as e:
-            print(e)
+            pass
 
 
     def spider_closed(self):

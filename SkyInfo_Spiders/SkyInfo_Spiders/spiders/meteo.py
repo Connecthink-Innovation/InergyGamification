@@ -1,3 +1,16 @@
+import logging
+import urllib3
+from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
+
+# Desactivar los mensajes de registro de Selenium, scrapy y urllib3
+logging.getLogger('selenium').setLevel(logging.WARNING)
+selenium_logger.setLevel(logging.WARNING)
+logging.getLogger('scrapy').setLevel(logging.WARNING)
+logging.getLogger('scrapy').propagate = False
+urllib3_logger = logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('filelock').setLevel(logging.ERROR)
+
+
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -10,7 +23,10 @@ import os
 
 
 def render_page(url):
-    driver = webdriver.Chrome()
+    options = webdriver.ChromeOptions()
+    options.add_experimental_option('excludeSwitches', ['enable-logging'])
+
+    driver = webdriver.Chrome(options=options)
     driver.get(url)
     time.sleep(3)
     r = driver.page_source
@@ -18,6 +34,9 @@ def render_page(url):
     return r
 
 def scraper_next_day(page, dates, project_root):
+
+    print("Extracting meteorological data of following days...")
+
     output = pd.DataFrame()
     
     data = []
@@ -47,13 +66,15 @@ def scraper_next_day(page, dates, project_root):
     file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_next.csv")
     output.to_csv(file_path)
 
-    print('Scraper done!')
-
+    print('Meteorological data of following days extracted!\n')
 
     return output
 
 
 def scraper_previous_days(page, dates, project_root, fake=False):
+
+    print("Extracting weather data from previous days...")
+
     output = pd.DataFrame()
     
     data = []
@@ -87,7 +108,7 @@ def scraper_previous_days(page, dates, project_root, fake=False):
 
     output.to_csv(file_path)
 
-    print('Scraper done!')
+    print('Meteorological data from previous days extracted!\n')
 
 
     return output
@@ -149,6 +170,6 @@ def run_scrapy(mode, project_root):
         df_output2 = scraper_previous_days(page, dates, project_root, fake)
 
     time.sleep(5)
-
+    
 
 #run_scrapy(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification" )

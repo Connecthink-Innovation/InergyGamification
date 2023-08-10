@@ -1,3 +1,15 @@
+import logging
+import urllib3
+from selenium.webdriver.remote.remote_connection import LOGGER as selenium_logger
+
+# Desactivar los mensajes de registro de Selenium, scrapy y urllib3
+logging.getLogger('selenium').setLevel(logging.WARNING)
+selenium_logger.setLevel(logging.WARNING)
+logging.getLogger('scrapy').setLevel(logging.WARNING)
+logging.getLogger('scrapy').propagate = False
+urllib3_logger = logging.getLogger('urllib3').setLevel(logging.WARNING)
+logging.getLogger('filelock').setLevel(logging.ERROR)
+
 from scrapy import Spider, Request
 from scrapy.crawler import CrawlerProcess
 from scrapy.utils.project import get_project_settings
@@ -9,7 +21,7 @@ import csv
 
 class LightPriceSpider(Spider):
     name = 'light_price'
-    allowed_domains = ['https://tarifaluzhora.es']
+    allowed_domains = ['tarifaluzhora.es']
     start_urls = ['https://tarifaluzhora.es']
 
     def __init__(self, mode, project_root, *args, **kwargs):
@@ -45,7 +57,7 @@ class LightPriceSpider(Spider):
         self.header = ["Date", "hour_range", 'light_price_kwh' ]
 
         #Allowed domains and start url
-        self.allowed_domains = ['https://tarifaluzhora.es']
+        self.allowed_domains = ['tarifaluzhora.es']
         self.start_urls = ['https://tarifaluzhora.es']
 
 
