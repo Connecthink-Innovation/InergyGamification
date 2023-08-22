@@ -19,6 +19,9 @@ from datetime import datetime, timedelta
 import csv
 
 
+import light_price_predictor
+
+
 class LightPriceSpider(Spider):
     name = 'light_price'
     allowed_domains = ['tarifaluzhora.es']
@@ -83,6 +86,11 @@ class LightPriceSpider(Spider):
 
                     data = dict(zip(self.header, [date, hour_range, price])) #Crate a dict with header - key , data extracted - value
                     light_prices.append(data) #Add row dict to data list
+        
+        if len(light_prices) == 0:
+            print("ERROR: Energy prices go public at 20:30. Wait until them and rerun the code.")
+            #light_prices = light_price_predictor.main(self.project_root)
+            
 
         self.save_csv(light_prices, response.meta["Date"])
 
@@ -115,4 +123,4 @@ def run_spider(mode, project_root):
     process.crawl(LightPriceSpider, mode, project_root)
     process.start()
 
-#run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification")
+run_spider(mode="prod", project_root=r"c:\Users\abelb\Desktop\Gamification")
