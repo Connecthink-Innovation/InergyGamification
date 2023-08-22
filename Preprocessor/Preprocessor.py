@@ -236,7 +236,8 @@ class Preprocessor:
 
         # > Detect the original events language
         if len(df) > 0:
-            first_description = df.loc[0, 'Title']
+            first_row = df.iloc[0]
+            first_description = first_row['Title']
             detected_lang_code  = detect(first_description)
             detected_lang_name = pycountry.languages.get(alpha_2=detected_lang_code).name
 

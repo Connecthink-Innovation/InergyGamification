@@ -124,7 +124,7 @@ def run_scrapy(mode, project_root):
     #PROD. CODE
     if mode == "prod":
         date = datetime.now()
-        for i in range(2, -1, -1):
+        for i in range(0, 3):
             date_previous_i = date - timedelta(days=i)
             date_previous_i_str = date_previous_i.strftime("%Y-%m-%d")
             dates.append(date_previous_i_str)
@@ -161,7 +161,7 @@ def run_scrapy(mode, project_root):
     #PROD. CODE
     if mode == "prod":
         page = 'https://www.wunderground.com/hourly/es/canyelles/ICANYE10/date/'
-        df_output2 = scraper_next_day(page,dates)
+        df_output2 = scraper_next_day(page,dates, project_root)
 
     #DEBUG. CODE
     if mode == "debug":

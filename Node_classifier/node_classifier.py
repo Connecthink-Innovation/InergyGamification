@@ -181,9 +181,11 @@ class NodeClassifier():
 
 #DEBUG
 def main():
+    print("Classifying nodes in their relevant zone...")
     node_clasif = NodeClassifier()
     node_clasif.get_input_data()
     node_clasif.classify_nodes()
     node_clasif.save_output_data()
+    print("Classified nodes.\n")
 
 #main()

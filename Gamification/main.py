@@ -89,28 +89,33 @@ class Gamification():
 
 
     def run_preprocessor(self,):
+        print("Preprocessing extracted data...")
         preprocessor = Preprocessor(self.mode, self.events_source)
         preprocessor.get_input_data()
         preprocessor.preprocess_data()
         preprocessor.save_output_data()
+        print("Data extracted processed.\n")
 
 
     def run_light_intensity_recommender(self,):
-
+        print("Running light intensity recommender...")
         light_intensity_recommender = LightIntensityRecommender()
         light_intensity_recommender.get_input_data()
         light_intensity_recommender.calculate_recommended_light_intensity(self.recommender_params)
         light_intensity_recommender.calculate_intensity_savings()
         light_intensity_recommender.calculate_co2_consumption()
         light_intensity_recommender.save_output_data()
+        print("Ready-to-use light intensity recommendations.\n")
 
     def run_visualizer(self,):
         if self.plot_results:
+            print("Getting visualizations on recommendations...")
             visualizer = Visualizer(self.mode)
             visualizer.get_input_data()
             visualizer.visualize_real_intensity_vs_recommended_individual(type="bar")
             visualizer.visualize_zone_intensity_savings()
             visualizer.save_output_data()
+            print("Visualizations on the recommendations obtained.\n")
 
 def main(mode, events_source, recommender_params, plot_results):
     gamification = Gamification(mode, events_source, recommender_params, plot_results)

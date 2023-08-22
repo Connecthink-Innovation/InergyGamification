@@ -19,7 +19,7 @@ from datetime import datetime, timedelta
 import csv
 
 
-import light_price_predictor
+#import light_price_predictor
 
 
 class LightPriceSpider(Spider):
@@ -123,4 +123,4 @@ def run_spider(mode, project_root):
     process.crawl(LightPriceSpider, mode, project_root)
     process.start()
 
-run_spider(mode="prod", project_root=r"c:\Users\abelb\Desktop\Gamification")
+#run_spider(mode="prod", project_root=r"c:\Users\abelb\Desktop\Gamification")
