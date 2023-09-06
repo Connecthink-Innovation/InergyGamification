@@ -128,4 +128,4 @@ def run_spider(mode, project_root):
     process.crawl(SunriseSunsetSpider, mode, project_root)
     process.start()
 
-#run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification")
+#run_spider(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification - main test")

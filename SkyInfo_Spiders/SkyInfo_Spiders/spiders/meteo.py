@@ -14,6 +14,7 @@ logging.getLogger('filelock').setLevel(logging.ERROR)
 from bs4 import BeautifulSoup as BS
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
 
 from functools import reduce
 import pandas as pd
@@ -22,11 +23,14 @@ from datetime import datetime, timedelta
 import os
 
 
-def render_page(url):
+def render_page(url, project_root):
     options = webdriver.ChromeOptions()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
-    driver = webdriver.Chrome(options=options)
+    chrome_driver_path = os.path.join(project_root,"SkyInfo_Spiders","SkyInfo_Spiders", "chromedriver.exe")
+    chrome_service = ChromeService(executable_path=chrome_driver_path)
+
+    driver = webdriver.Chrome(service=chrome_service, options=options)
     driver.get(url)
     time.sleep(3)
     r = driver.page_source
@@ -44,7 +48,7 @@ def scraper_next_day(page, dates, project_root):
 
         url = str(str(page) + str(d))
 
-        r = render_page(url)
+        r = render_page(url, project_root)
 
         soup = BS(r, "html.parser")
         container = soup.find('lib-city-hourly-forecast')
@@ -82,7 +86,7 @@ def scraper_previous_days(page, dates, project_root, fake=False):
 
         url = str(str(page) + str(d))
 
-        r = render_page(url)
+        r = render_page(url, project_root)
 
         soup = BS(r, "html.parser")
         container = soup.find('lib-city-history-observation')
@@ -172,4 +176,4 @@ def run_scrapy(mode, project_root):
     time.sleep(5)
     
 
-#run_scrapy(mode="debug", project_root=r"c:\Users\abelb\Desktop\Gamification" )
+run_scrapy(mode="prod", project_root=r"c:\Users\abelb\Desktop\Gamification - main test")

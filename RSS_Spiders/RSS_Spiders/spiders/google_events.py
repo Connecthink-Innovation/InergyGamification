@@ -18,6 +18,7 @@ from scrapy_selenium import SeleniumRequest
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC 
 from selenium.webdriver.support.ui import WebDriverWait
@@ -82,8 +83,11 @@ class GoogleEventsSpider(scrapy.Spider):
         chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0: Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36')
         chrome_options.add_argument('--no_sandbox')
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        chrome_driver_path = os.path.join(self.project_root,"RSS_Spiders", "chromedriver.exe")
-        driver = webdriver.Chrome(chrome_options=chrome_options, executable_path=chrome_driver_path)
+
+        chrome_driver_path = os.path.join(self.project_root,"RSS_Spiders", "RSS_Spiders", "chromedriver.exe")
+        chrome_service = ChromeService(executable_path=chrome_driver_path)
+
+        driver = webdriver.Chrome(service=chrome_service, options=chrome_options)
 
         yield SeleniumRequest(
             url=self.start_urls[0],
@@ -350,4 +354,4 @@ def run_spider(project_root):
     process.crawl(GoogleEventsSpider, project_root)
     process.start()
 
-#run_spider(project_root=r"c:\Users\abelb\Desktop\Gamification")
+#run_spider(project_root=r"c:\Users\abelb\Desktop\Gamification - main test")
