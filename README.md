@@ -15,7 +15,7 @@ The recommender will take as input information about the weather from the last 3
     * **Meteo web scraping:** Gather the meteorological information from a certain municipality over a specified time period using web scraping.
     * **Moon phases web scraping**: Gather the information on the lunar phases to find out if the moon is going to improve the city's nighttime lighting.
     * **Moonrise and moonset web scraping**: Obtain data related to the time of moonrise and moonset to know which time ranges it will affect and we have to consider the characteristics of the moon.
-    * **Sunrise and sunset web scraping:**: Obtain data related to the time of sunrise and sunset to know in which time ranges there will be natural light and it is not necessary to use artificial light in the city.
+    * **Sunrise and sunset web scraping:** Obtain data related to the time of sunrise and sunset to know in which time ranges there will be natural light and it is not necessary to use artificial light in the city.
   * **Events Extractor:** It is used to obtain the list of events scheduled in the city. There are currently two ways to obtain these events:
 
     * **Google Events web scraping:** Extracts city events that have been published on Google and have been collected by the Google Events tool (engine).
