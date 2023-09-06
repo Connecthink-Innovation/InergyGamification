@@ -94,7 +94,11 @@ The main program is distributed this way:
 - Afterward, run the light intensity recommender to calculate light intensity recommendations and other related metrics.
 - Finally, generates visualizations of the results if argument `plot_results` is True.
 
-**Configuration parameters and examples**
+**Necessary libraries**
+
+In order to run the program successfully, it is necessary to have the necessary libraries. To do this, it is advisable to create an environment and install the libraries from the requirements.txt file.
+
+**Configuration parameters and run examples**
 
 * `--mode`: Indicates the execution mode (debug or prod).
   * Possible values:
