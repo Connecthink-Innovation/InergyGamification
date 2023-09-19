@@ -176,4 +176,4 @@ def run_scrapy(mode, project_root):
     time.sleep(5)
     
 
-run_scrapy(mode="prod", project_root=r"c:\Users\abelb\Desktop\Gamification - main test")
+#run_scrapy(mode="prod", project_root=r"c:\Users\abelb\Desktop\Gamification - main test")
