@@ -82,6 +82,7 @@ class GoogleEventsSpider(scrapy.Spider):
         chrome_options.add_argument("--window-size=1280,720")
         chrome_options.add_argument('--user-agent=Mozilla/5.0 (Windows NT 10.0: Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36')
         chrome_options.add_argument('--no_sandbox')
+        chrome_options.add_argument('--headless')
         chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
 
         chrome_driver_path = os.path.join(self.project_root,"RSS_Spiders", "RSS_Spiders", "chromedriver.exe")

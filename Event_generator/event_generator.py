@@ -3,6 +3,9 @@
 import datetime
 import openai
 import random
+import time
+from dotenv import load_dotenv
+load_dotenv()
 
 import ast
 from typing import List
@@ -85,8 +88,9 @@ class EventGenerator():
 
         #AZURE OPENAI
         #Conect to Azure OpenAI model:
-        openai.api_key = "a87266acc05c46519ec00fb8bc86fbc5"
-        openai.api_base = "https://openaiabel12.openai.azure.com/" # your endpoint
+        api_key = os.environ.get('MY_API_KEY')
+        openai.api_key = api_key
+        openai.api_base = "https://pruebaabel1231234152414.openai.azure.com/" # your endpoint
         openai.api_type = 'azure'
         openai.api_version = '2023-05-15' # this may change in the future
         self.deployment_name='gpt35turbo' #This will correspond to the custom name you chose for your deployment when you deployed a model.
@@ -430,6 +434,7 @@ class EventGenerator():
         print("\nGenerating events..\n")
         
         #Iter. through each event context and try to generate an event description
+   
         for event_context in today_contexts_events:
 
             try:
@@ -510,8 +515,10 @@ class EventExtractor:
 
             #AZURE OPENAI
             #Conect to Azure OpenAI model:
-            openai.api_key = "a87266acc05c46519ec00fb8bc86fbc5"
-            openai.api_base = "https://openaiabel12.openai.azure.com/" # your endpoint
+            api_key = os.environ.get('MY_API_KEY')
+            print(api_key)
+            openai.api_key = api_key
+            openai.api_base = "https://pruebaabel1231234152414.openai.azure.com/" # your endpoint
             openai.api_type = 'azure'
             openai.api_version = '2023-05-15' # this may change in the future
             self.deployment_name='gpt35turbo' #This will correspond to the custom name you chose for your deployment when you deployed a model.
@@ -601,7 +608,7 @@ class EventExtractor:
             None
         """
 
-        print("Extracting data...")
+        print("Extracting events data...")
 
         for event in self.descriptions_events_today:
             # Create a temporal context:
@@ -623,7 +630,6 @@ class EventExtractor:
                 reply_content = completion.choices[0].message.content
 
                 self.data_extraction_list.append(reply_content)
-            
             except Exception as e:
                 print("\nERROR extracting data in context:\n", temp_extractor_context)
                 print("\nRaw ERROR:", e)
@@ -673,7 +679,6 @@ class EventExtractor:
             List: A list containing the extracted data converted into dictionaries.
         """
 
-        print("Converting the string data into dictionaries...")
         for event in self.data_extraction_list:
 
             # Replace the '\' because in some cases chat gpt puts some of this characters in the strings
@@ -681,7 +686,7 @@ class EventExtractor:
             try:
                 self.out_list.append(ast.literal_eval(event))
             except Exception as e:
-                print("\nERROR converting data into dictionaries:\n", event)
+                print("\nERROR converting events data into dictionaries:\n", event)
 
     def save_output(self,):
         path = os.path.join(self.project_root, "Event_generator", "data", "fake_events.csv")
@@ -708,7 +713,6 @@ def main(project_root):
 
     descriptions_events_today = event_generator.descriptions_events_today
     print("Nº of events generated: ", len(descriptions_events_today))
-    print("Events generated:\n ", descriptions_events_today)
 
     
     event_extractor = EventExtractor(descriptions_events_today, project_root)
@@ -717,12 +721,11 @@ def main(project_root):
     event_extractor.append_geolocation()
 
     event_extractor.literal_eval()
-    print("Events dict:\n ", event_extractor.out_list)
 
     event_extractor.save_output()
   
 
-#main(project_root=r"c:\Users\abelb\Desktop\Gamification")
+#main(project_root=r"c:\Users\abelb\Desktop\Gamification - main test")
 
 
 

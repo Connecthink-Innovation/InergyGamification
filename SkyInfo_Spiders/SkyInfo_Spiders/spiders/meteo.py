@@ -26,7 +26,7 @@ import os
 def render_page(url, project_root):
     options = webdriver.ChromeOptions()
     options.add_experimental_option('excludeSwitches', ['enable-logging'])
-
+    options.add_argument('--headless')
     chrome_driver_path = os.path.join(project_root,"SkyInfo_Spiders","SkyInfo_Spiders", "chromedriver.exe")
     chrome_service = ChromeService(executable_path=chrome_driver_path)
 

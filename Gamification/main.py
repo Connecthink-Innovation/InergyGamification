@@ -71,7 +71,7 @@ class Gamification():
         processes.append(multiprocessing.Process(target=moon_phases.run_spider, args=(self.mode, project_root)))
         processes.append(multiprocessing.Process(target=moonrise_moonset.run_spider, args=(self.mode, project_root)))
         processes.append(multiprocessing.Process(target=sunrise_sunset.run_spider, args=(self.mode, project_root)))
-        processes.append(multiprocessing.Process(target=light_price.run_spider, args=(self.mode, project_root)))
+        #processes.append(multiprocessing.Process(target=light_price.run_spider, args=(self.mode, project_root)))
         
         if self.events_source == "google":
             processes.append(multiprocessing.Process(target=google_events.run_spider, args=(project_root,)))
