@@ -1,0 +1,8 @@
+# Ignorar el archivo .env para mantener seguras las variables de entorno
+.env
+
+# Ignorar todos los archivos CSV
+*.csv
+
+# No ignorar archivos CSV en la carpeta Node_classifier/input_data
+!Node_classifier/input_data/*.csv
