@@ -345,7 +345,12 @@ class GoogleEventsSpider(scrapy.Spider):
 
     
     def save_locally(self):
-        file_path = os.path.join(self.project_root, "RSS_Spiders", "data", "google_events.csv")
+        path_dir = os.path.join(self.project_root, "RSS_Spiders", "data")
+
+        # Check if the "data" folder exists, if not, create it
+        os.makedirs(path_dir, exist_ok=True)
+
+        file_path = os.path.join(path_dir, "google_events.csv")
 
         self.df.to_csv(file_path, index=False)
 

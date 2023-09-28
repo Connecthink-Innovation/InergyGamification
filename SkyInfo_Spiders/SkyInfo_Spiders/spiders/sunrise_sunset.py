@@ -102,8 +102,13 @@ class SunriseSunsetSpider(Spider):
 
 
     def save_csv(self, days):
+        path_dir = os.path.join(self.project_root, "SkyInfo_Spiders", "data")
+        
+        # Create dir if not exist
+        os.makedirs(path_dir, exist_ok=True)
 
-        file_path = os.path.join(self.project_root, "SkyInfo_Spiders", "data", "sunrise_sunset.csv")
+
+        file_path = os.path.join(path_dir, "sunrise_sunset.csv")
 
         file_exists = os.path.isfile(file_path) #Check if file exists
 

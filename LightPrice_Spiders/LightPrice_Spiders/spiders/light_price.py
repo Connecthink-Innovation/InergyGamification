@@ -103,7 +103,13 @@ class LightPriceSpider(Spider):
 
         
     def save_csv(self, light_prices, date):
-        file_path = os.path.join(self.project_root, "LightPrice_Spiders", "data", "light_prices.csv")
+        # Check if data path exists
+        path_dir = os.path.join(self.project_root, "LightPrice_Spiders", "data")
+        
+        # Create the directory if it does not exist
+        os.makedirs(path_dir, exist_ok=True)
+
+        file_path = os.path.join(path_dir, "light_prices.csv")
 
         file_exists = os.path.isfile(file_path) #Check if file exists
         

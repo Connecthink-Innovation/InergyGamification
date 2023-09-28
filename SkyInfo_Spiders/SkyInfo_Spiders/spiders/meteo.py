@@ -67,7 +67,12 @@ def scraper_next_day(page, dates, project_root):
             
 
     output = pd.DataFrame(data, columns=['Date', 'Hour', 'condition', 'temp_farenheit', 'feels_like_farenheit', 'precip_percent', 'precip_inches', 'cloud_cover_percent', 'dew_point_farenheit', 'humidity_percent', 'wind_vel', 'pressure_inches'])
-    file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_next.csv")
+    
+    path_dir = os.path.join(project_root, "SkyInfo_Spiders", "data")
+    # Create dir if not exist
+    os.makedirs(path_dir, exist_ok=True)
+
+    file_path = os.path.join(path_dir, "weather_next.csv")
     output.to_csv(file_path)
 
     print('Meteorological data of following days extracted!\n')
@@ -105,10 +110,16 @@ def scraper_previous_days(page, dates, project_root, fake=False):
             
     output = pd.DataFrame(data, columns=["Date", "Hour", "temp_farenheit", "dew_point_farenheit", "humidity_percent", "wind", "wind_vel", "wind_gust", "pressure_inches", "precip_inches", "condition"])
 
+    path_dir = os.path.join(project_root, "SkyInfo_Spiders", "data")
+    
+    # Create dir if path not exist
+    os.makedirs(path_dir, exist_ok=True)
+
+
     if not fake:
-        file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_previous.csv")
+        file_path = os.path.join(path_dir, "weather_previous.csv")
     else:
-        file_path = os.path.join(project_root, "SkyInfo_Spiders", "data", "weather_next.csv")
+        file_path = os.path.join(path_dir, "weather_next.csv")
 
     output.to_csv(file_path)
 

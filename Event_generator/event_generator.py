@@ -689,20 +689,25 @@ class EventExtractor:
                 print("\nERROR converting events data into dictionaries:\n", event)
 
     def save_output(self,):
-        path = os.path.join(self.project_root, "Event_generator", "data", "fake_events.csv")
+        path_dir = os.path.join(self.project_root, "Event_generator", "data")
+        
+        # Create the directory if it does not exist
+        os.makedirs(path_dir, exist_ok=True)
 
-         # Abrir el archivo CSV en modo escritura
+        path = os.path.join(path_dir, "fake_events.csv")
+
+         # Open CSV file in write mode
         with open(path, 'w', newline='') as archivo_csv:
-            # Obtener las claves del primer diccionario como nombres de columnas
+            # Get first dictionary keys as column names
             columnas = self.out_list[0].keys()
 
-            # Crear un objeto DictWriter para escribir en el archivo CSV
+            # Create a DictWriter object to write to the CSV file
             writer = csv.DictWriter(archivo_csv, fieldnames=columnas)
 
-            # Escribir el encabezado con los nombres de las columnas
+            # Write the header with the column names
             writer.writeheader()
 
-            # Escribir los datos de cada diccionario como filas en el archivo CSV
+            # Write data from each dictionary as rows to CSV file
             for diccionario in self.out_list:
                 writer.writerow(diccionario)
 

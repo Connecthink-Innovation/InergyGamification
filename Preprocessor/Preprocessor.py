@@ -1154,6 +1154,9 @@ class Preprocessor:
         Returns:
             None
         """
+        # Check if the "output_data_path" folder exists, if not, create it
+        if not os.path.exists(self.output_data_path):
+            os.makedirs(self.output_data_path)
 
         # Loop through each DataFrame in the "self.df_next_list"
         for df_next in self.df_next_list:

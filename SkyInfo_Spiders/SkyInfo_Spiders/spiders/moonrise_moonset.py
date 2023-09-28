@@ -94,7 +94,12 @@ class MoonriseMoonsetSpider(Spider):
 
 
     def save_csv(self, lunations):
-        file_path = os.path.join(self.project_root, "SkyInfo_Spiders", "data", "moonrise_moonset.csv")
+        path_dir = os.path.join(self.project_root, "SkyInfo_Spiders", "data")
+        
+        # Create dir if not exist
+        os.makedirs(path_dir, exist_ok=True)
+
+        file_path = os.path.join(path_dir, "moonrise_moonset.csv")
 
         file_exists = os.path.isfile(file_path) #Check if file exists
 
